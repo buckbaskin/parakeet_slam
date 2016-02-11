@@ -1,3 +1,6 @@
+import rospy
+import numpy.random.normal as normal # normal(mu, sigma, count)
+
 class SlamAlgoritm(object):
     def __init__(self):
         pass
@@ -11,11 +14,58 @@ class SlamAlgoritm(object):
     def motion_update(self, twist):
         pass
 
-    def motion_model(self, twist):
-        self.motion_model_noise_free(self, twist)
+    def motion_model(self, prevState, twist, dt):
+        return self.motion_model_noisy(prevState, twist, dt)
 
-    def motion_model_noise_free(self, twist):
-        pass
+    def motion_model_noisy(self, prevState, twist, dt):
+        # pS      h1        |
+        # 0-----------------0
+        # |                 h2
+        dheading = twist.twist.angular.z * dt
+        
+        drive_noise = normal(0, .05, 1)
+        ds = twist.twist.linear.x * dt
+
+        prev_x = prevState.pose.pose.position.x
+        prev_y = prevState.pose.pose.position.y
+        prev_heading = quaternion_to_heading(prevState.pose.pose.orientation)
+
+        heading_noise = normal(0, .05, 1)
+        heading_1 = prev_heading+dheading/2+heading_noise
+
+        heading_noise = normal(0, .05, 1)
+        heading_2 = heading_1+dheading/2+heading_noise
+
+        dx = ds*math.cos(heading_1)
+        dy = ds*math.cos(heading_1)
+
+        prevState.pose.pose.position.x += dx
+        prevState.pose.pose.position.y += dy
+        prevState.pose.pose.orientation = heading_to_quaternion(heading_2)
+
+        return prevState
+
+    def motion_model_noise_free(self, prevState, twist, dt):
+        # for reference
+        # pS      h1        |
+        # 0-----------------0
+        # |                 h2
+        dheading = twist.twist.angular.z * dt
+        ds = twist.twist.linear.x * dt
+        prev_x = prevState.pose.pose.position.x
+        prev_y = prevState.pose.pose.position.y
+        prev_heading = quaternion_to_heading(prevState.pose.pose.orientation)
+
+        heading_1 = prev_heading+dheading/2
+        heading_2 = prev_heading+dheading
+        dx = ds*math.cos(heading_1)
+        dy = ds*math.cos(heading_1)
+
+        prevState.pose.pose.position.x += dx
+        prevState.pose.pose.position.y += dy
+        prevState.pose.pose.orientation = heading_to_quaternion(heading_2)
+
+        return prevState
 
 class ParticleMixedSlam(SlamAlgoritm):
     '''
