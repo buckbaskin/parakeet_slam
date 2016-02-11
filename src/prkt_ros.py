@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
+
 from nav_msgs.msg import Odometry
 from utils import heading_to_quaternion, quaternion_to_heading
 from viz_feature_sim.msg import Observation
+
 import numpy.random.normal as normal # normal(mu, sigma, count)
 
 class CamSlam360(object):

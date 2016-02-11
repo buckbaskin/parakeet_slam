@@ -1,7 +1,10 @@
 import rospy
+
+from nav_msgs.msg import Odometry
+
 import numpy.random.normal as normal # normal(mu, sigma, count)
 
-class SlamAlgoritm(object):
+class SlamAlgorithm(object):
     def __init__(self):
         pass
 
@@ -67,7 +70,7 @@ class SlamAlgoritm(object):
 
         return prevState
 
-class ParticleMixedSlam(SlamAlgoritm):
+class ParticleMixedSlam(SlamAlgorithm):
     '''
     Need to combine 3 measurements to get an initial estimate for the pose of the landmark
      Use this in combination with maintaining new landmark hypothesis to start adding landmarks
@@ -82,6 +85,23 @@ class ParticleMixedSlam(SlamAlgoritm):
     In small cases, this will just search all of the nodes, eventually with lots of data it should limit
      the correspondence to new nodes and nodes that are close together
     '''
+
+    def __init__(self):
+        self.robot_particles = []
+        self.feature_models = []
+        self.last_time = rospy.Time.now()
+
+    def measurement_update(self):
+        pass
+
+    def measurement_model(self):
+        pass
+
+    def motion_update(self, twist):
+        dt = rospy.Time.now() - self.last_time
+        for i in range(0, len(self.robot_particles)):
+            self.robot_particles[i] = motion_model_noisy(self.robot_particles[i], twist, dt)
+
     def initialize_particle_filter(self, size):
         self.robot_particles = []
         for _ in range(0,size):
@@ -100,3 +120,20 @@ class ParticleMixedSlam(SlamAlgoritm):
 
     def initialize_known_landmarks(self):
         self.landmarks = []
+
+class FeatureModel(object):
+    def __init__(x, x_sigma, y, y_signma, r, r_sigma, g, g_sigma, b, b_sigma):
+        '''
+        gaussian model of a feature state (x, y, r, g, b)
+        '''
+        self.x = x
+        self.x_sigma = x_sigma
+        self.y = y
+        self.y_sigma = y_sigma
+        self.r = r
+        self.r_sigma = r_sigma
+        self.g = g
+        self.g_sigma = g_sigma
+        self.b = b
+        self.b_sigma = b_sigma
+        
