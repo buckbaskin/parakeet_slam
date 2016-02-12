@@ -1,6 +1,9 @@
 import rospy
 
+from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from utils import version
+from viz_feature_sim.msg import Observation
 
 import numpy.random.normal as normal # normal(mu, sigma, count)
 
@@ -8,7 +11,7 @@ class SlamAlgorithm(object):
     def __init__(self):
         pass
 
-    def measurement_update(self):
+    def measurement_update(self, measurement):
         pass
 
     def measurement_model(self):
@@ -89,23 +92,90 @@ class ParticleMixedSlam(SlamAlgorithm):
     def __init__(self):
         self.robot_particles = []
         self.feature_models = []
+        self.hypothesis_features = []
         self.last_time = rospy.Time.now()
+        self.last_twist = Twist()
 
-    def measurement_update(self):
-        pass
+    @version(1)
+    def measurement_update(self, measurement):
+        if is_instance(measurement, Observation):
+            self.cam_observation_update(measurement)
+        else:
+            pass
 
-    def measurement_model(self):
+    @version(1)
+    def condense_robot_state(self):
+        avg_state = 0
+
+    def cam_observation_model(self, cam_obs):
+        '''Single bearing-color observation'''
+        
+        self.motion_model(self.last_twist)
+        state = self.condense_robot_state()
+
+        x = state.pose.pose.position.x
+        y = state.pose.pose.position.y
+        robot_heading = quaternion_to_heading(state.pose.pose.orientation)
+        map_orientation = robot_heading + cam_obs.bearing
+
+        feature_matches = []
+
+        for feature in self.feature_models:
+            feature_matches.append(
+                (self.prob_feature_match(x, y, map_orientation, feature), 
+                    feature)
+                )
+
+        max_val = 0.0
+        index = 0
+        for i in range(0, len(feature_matches)):
+            if feature_matches[i][0] > max_val:
+                index = i
+
+        # matched the measurement to the most likely feature
+
+        # check probability of a new feature
+        new_chance = self.prob_new_feature()
+        if new_chance > max_val:
+            # then I probably saw a new feature
+            # add this to the hypothesis
+            # update map without updating robot location?
+            self.add_hypothesis(state, cam_obs)
+            # TODO(bucbkasin): finish the rest of this update
+        else:
+            # update that feature and the map
+            # TODO(bucbkasin)
+            max_feature = self.feature_models[index]
+
+
+    def prob_feature_match(self, x, y, m_o, feature):
+        # TODO(bucbkasin)
+        return 0.5
+
+    def prob_new_feature(self, x, y, m_o):
+        # TODO(bucbkasin)
+        return 0.45
+
+    def add_hypothesis(self, state, cam_obs):
+        # check entire existing list for similar colors
+        # if there are 2 or more existing hypothesis that match well enough
+        # create a new map feature and pop those two off the list
+        # else, add hypothesis to the list
+
+        # TODO(bucbkasin)
         pass
 
     def motion_update(self, twist):
+        self.last_twist = twist
         dt = rospy.Time.now() - self.last_time
         for i in range(0, len(self.robot_particles)):
             self.robot_particles[i] = motion_model_noisy(self.robot_particles[i], twist, dt)
+        self.last_time = self.last_time + dt
 
     def initialize_particle_filter(self, size):
         self.robot_particles = []
         for _ in range(0,size):
-            o = Odometry()
+            o = RobotParticle()
             o.pose.pose.position.x = normal(0,1,1)
             o.pose.pose.position.y = normal(0,1,1)
             o.pose.pose.position.z = 0
@@ -120,6 +190,9 @@ class ParticleMixedSlam(SlamAlgorithm):
 
     def initialize_known_landmarks(self):
         self.landmarks = []
+
+class RobotParticle(Odometry):
+    pass
 
 class FeatureModel(object):
     def __init__(x, x_sigma, y, y_signma, r, r_sigma, g, g_sigma, b, b_sigma):
