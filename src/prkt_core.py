@@ -103,10 +103,11 @@ class ParticleMixedSlam(SlamAlgorithm):
         else:
             pass
 
-    @version(1)
+    @version(1,0,0)
     def condense_robot_state(self):
         avg_state = 0
 
+    @version(1,0,0)
     def cam_observation_model(self, cam_obs):
         '''Single bearing-color observation'''
         
@@ -147,15 +148,17 @@ class ParticleMixedSlam(SlamAlgorithm):
             # TODO(bucbkasin)
             max_feature = self.feature_models[index]
 
-
+    @version(1,0,0)
     def prob_feature_match(self, x, y, m_o, feature):
         # TODO(bucbkasin)
         return 0.5
 
+    @version(1,0,0)
     def prob_new_feature(self, x, y, m_o):
         # TODO(bucbkasin)
         return 0.45
 
+    @version(1,0,0)
     def add_hypothesis(self, state, cam_obs):
         # check entire existing list for similar colors
         # if there are 2 or more existing hypothesis that match well enough
@@ -165,6 +168,7 @@ class ParticleMixedSlam(SlamAlgorithm):
         # TODO(bucbkasin)
         pass
 
+    @version(1,0,0)
     def motion_update(self, twist):
         self.last_twist = twist
         dt = rospy.Time.now() - self.last_time
@@ -172,6 +176,7 @@ class ParticleMixedSlam(SlamAlgorithm):
             self.robot_particles[i] = motion_model_noisy(self.robot_particles[i], twist, dt)
         self.last_time = self.last_time + dt
 
+    @version(1,0,0)
     def initialize_particle_filter(self, size):
         self.robot_particles = []
         for _ in range(0,size):
@@ -188,12 +193,15 @@ class ParticleMixedSlam(SlamAlgorithm):
             o.twist.twist.angular.z = normal(0,1,1)
             self.robot_particles.append(o)
 
+    @version(1,0,0)
     def initialize_known_landmarks(self):
         self.landmarks = []
 
+@version(1,0,0)
 class RobotParticle(Odometry):
     pass
 
+@version(1,0,0)
 class FeatureModel(object):
     def __init__(x, x_sigma, y, y_signma, r, r_sigma, g, g_sigma, b, b_sigma):
         '''
@@ -209,4 +217,3 @@ class FeatureModel(object):
         self.g_sigma = g_sigma
         self.b = b
         self.b_sigma = b_sigma
-        
