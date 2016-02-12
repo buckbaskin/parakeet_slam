@@ -145,8 +145,8 @@ class ParticleMixedSlam(SlamAlgorithm):
             # TODO(bucbkasin): finish the rest of this update
         else:
             # update that feature and the map
-            # TODO(bucbkasin)
             max_feature = self.feature_models[index]
+            self.feature_update(cam_obs, index)
 
     @version(1,0,0)
     def prob_feature_match(self, x, y, m_o, feature):
@@ -167,6 +167,13 @@ class ParticleMixedSlam(SlamAlgorithm):
 
         # TODO(bucbkasin)
         pass
+
+    @version(1,0,0)
+    def feature_update(self, cam_obs, feature_index):
+        max_feature = self.feature_models[feature_index]
+        # update robot position
+        # update feature position
+        # TODO(bucbkasin)
 
     @version(1,0,0)
     def motion_update(self, twist):
