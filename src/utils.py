@@ -245,4 +245,9 @@ def drange(start, stop, step):
     while counter < stop:
         yield counter
         counter += step
-    
+
+def version(version):
+    def wrapper_function(function):
+        function.version = version
+        return function
+    return wrapper_function
