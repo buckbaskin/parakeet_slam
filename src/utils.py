@@ -246,8 +246,17 @@ def drange(start, stop, step):
         yield counter
         counter += step
 
-def version(version):
+def version(major, minor, bugfix, return_type=(), notes=''):
     def wrapper_function(function):
-        function.version = version
-        return function
+        function.version_major = major
+        function.version_minor = minor
+        function.version_bugfix = bugfix
+        function.version_notes = version_notes
+        if not return_type == ():
+            # TODO(buckbaskin): check return type of the function
+            #   if return_type != ()
+            return function
+        else:
+            return function
+        
     return wrapper_function

@@ -96,7 +96,7 @@ class ParticleMixedSlam(SlamAlgorithm):
         self.last_time = rospy.Time.now()
         self.last_twist = Twist()
 
-    @version(1)
+    @version(1,0,0)
     def measurement_update(self, measurement):
         if is_instance(measurement, Observation):
             self.cam_observation_update(measurement)
