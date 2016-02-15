@@ -1,0 +1,13 @@
+# from Probabilistic Robotics p.450
+
+particle = individiual state estimate + 1 kalman filter per map feature (total of N)
+Particle filter: M particles
+
+const M = 50
+N = 0 to start, adding more as I go algon
+
+# v1 (direct from book, bearing + range - color)
+#  algorithm assumes known correspondences for now
+#  color will make this known correspondences originally
+
+for each particle:
