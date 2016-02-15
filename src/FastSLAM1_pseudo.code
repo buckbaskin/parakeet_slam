@@ -52,7 +52,7 @@ for each particle:
 
 # resample existing particle list
 
-Create a new particle list
+Create a new temp particle list
 
 for i = 0, i < length of old particles list, i++:
 	draw index k with a probability proportional to the weight of particle k
@@ -62,7 +62,6 @@ return new particle list
 
 
 # --- v1.1 a more "python"-y version ---
-#  measurements come in as callbacks
 #  algorithm assumes known correspondences for now
 #  color will make this known correspondences originally
 
@@ -70,6 +69,8 @@ import math.pi as pi
 
 particle = individiual state estimate + 1 kalman filter per map feature (total of N)
 Particle filter: M particles
+
+particle_list = [new_particle() * 1000]
 
 const M = 50
 N = 0 to start, adding more as I go algon
@@ -79,6 +80,8 @@ between calls to the function:
 control = current_robot_control()
 zt = observation = next_measurement()
 j = zt.feature_id
+
+# loop over existing particles to update with new data
 
 for particle in old_particles:
 	
@@ -120,14 +123,113 @@ for particle in old_particles:
 
 # resample existing particle list
 
-# WIP(buckbaskin) Start here
+new_particle_list = []
+
+sum = 0
+for particle in particle_list:
+	sum = sum + particle.weight
+
+chosen = rand_in_range(0, sum)
+
+for _ = range(0, len(particle_list)):
+	for particle in particle_list:
+		chosen = chosen - particle.weight
+		if chosen < 0:
+			# choose this particle
+			new_particle_list.append(deep_copy(particle))
+
+particle_list = new_particle_list
+
+# --- v1.1 a more ROS "python"-y version ---
+#  measurements come in as callbacks
+#  algorithm assumes known correspondences for now
+#  color will make this known correspondences originally
+
+import rospy
+import math.pi as pi
+
+def startup(...)
+
+# particle = individiual state estimate + 1 kalman filter per map feature (total of N)
+# Particle filter: M particles
+const M = 50 # = number of particles
+
+particle_list = [new_particle() * M]
+
+const Qt = process noise
+
+last_motion_update_time = rospy.time.now()
+last_control = Twist() # initialize to all 0s
+
+def command_update_callback(new_control):
+	# do a motion update only to the current time (time of new command)
+	motion_update(new_control)
+
+def motion_update(new_control):
+	new_time = rospy.time.now()
+	dt = new_time - last_motion_update_time
+	for particle in particle_list:
+		particle.state = noisy_motion_model(particle.state, last_control, dt)
+	last_motion_update_time = new_time
+	last_control = new_control
+
+
+def measurement_update_callback(new_measurement):
+	# do a motion update (sampling), then do a measurement update (thru resampling)
+	motion_update(last_control) # this won't change the last_control
+
+	zt = new_measurement
+	
+	for particle in particle_list:
+		j = particle.get_feature_id(zt) # it will be particle dependent
+		if not j.seen_before(): # measured feature doesn't match existing particle-ekf
+			new_mean = inverse_measurement_model(particle.new_state, zt)
+
+			# ekf style update for covariance
+			H = jacobian_linearization_of_motion_model(particle.new_state, new_mean)
+			
+			new_covar = inverse(H) * Qt * transpose(inverse(H))
+
+			particle.add_new_feature_ekf(new_mean, new_covar)
+
+			particle.weight = default_weight()
+
+		else: # measured feature matches existing particle-ekf
+			old_measurement_ekf = particle.get_feature_by_id(j)
+			z_hat = measurement_prediction(old_measurement_ekf.mean, particle.new_state)
+			H = jacobian_linearization_of_motion_model(particle.new_state, old_measurement_ekf.mean)
+			
+			Q = H * old_measurement_ekf.covar * transpose(H) + Qt
+
+			K = old_measurement_ekf.covar * transpose(H) * inverse(Q)
+
+			new_mean = old_measurement_ekf.mean + K( zt - z_hat)
+
+			new_covar = (identity_matrix() - K * H)*(old_measurement_ekf.covar)
+
+			particle.replace_feature_ekf(j, new_mean, new_covar)
+
+			particle.weight = pow(2*pi*magnitude(Q), -1/2) * exp(-1/2 * transpose(zt - z_hat) * inverse(Q) * (zt - z_hat))
+
+		# WIP | start here, add in resampling
+
+# done looping over old particles
+
+# resample existing particle list
 
 new_particle_list = []
 
-Create a new particle list
+sum = 0
+for particle in particle_list:
+	sum = sum + particle.weight
 
-for i = 0, i < length of old particles list, i++:
-	draw index k with a probability proportional to the weight of particle k
-	add particle k to the new particle list
+chosen = rand_in_range(0, sum)
 
-return new particle list
+for _ = range(0, len(particle_list)):
+	for particle in particle_list:
+		chosen = chosen - particle.weight
+		if chosen < 0:
+			# choose this particle
+			new_particle_list.append(deep_copy(particle))
+
+particle_list = new_particle_list
