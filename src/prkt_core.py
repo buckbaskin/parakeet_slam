@@ -118,10 +118,10 @@ class ParticleMixedSlam(SlamAlgorithm):
 
         self.motion_update(self.last_twist)
 
-        for particle in particle_list:
+        for particle in self.robot_particles:
             j = particle.get_feature_id(zt)
             if j < 0: # not seen before
-                new_mean = self.inverse_measurement_model(particle.state, zt)
+                new_mean = self.inverse_cam_measurement_model(particle.state, zt)
                 H = self.jacobian_of_motion_model(particle.state, new_mean)
                 H_inverse = inverse(H)
                 new_covar = mm(mm(H_inverse, Qt), transpose(H_inverse))
@@ -148,19 +148,23 @@ class ParticleMixedSlam(SlamAlgorithm):
 
         temp_particle_list = []
         sum_ = 0
-        for particle in particle_list:
+        for particle in self.robot_particles:
             sum_ = sum_ + particle.weight
 
         chosen = random()*sum_
 
-        for _ in range(0, len(particle_list)):
-            for particle in particle_list:
+        for _ in range(0, len(self.robot_particles)):
+            for particle in self.robot_particles:
                 chosen = chosen - particle.weight
                 if chosen < 0:
                     # choose this particle
-                    new_particle_list.append(particle.deep_copy())
+                    temp_particle_list.append(particle.deep_copy())
 
-        particle_list = temp_particle_list
+        self.robot_particles = temp_particle_list
+
+    def inverse_cam_measurement_model(self, state, measurement):
+        # returns mean for a new measurement ekf
+        pass
 
 @version(0, 2, 0)
 class RobotParticle(Odometry):
