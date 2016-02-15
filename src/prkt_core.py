@@ -1,9 +1,19 @@
+'''
+Parakeet-Core
+
+This is the Python module that implements the SLAM algorithm for use in a ROS
+node.
+'''
+
+# pylint: disable=invalid-name
+# pylint: disable=no-self-use
+
 import rospy
 import math
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
-from matrix import inverse, transpose, mm, identity, magnitude
+from matrix import Matrix, inverse, transpose, mm, identity, magnitude
 from nav_msgs.msg import Odometry
 from random import random
 from utils import version, heading_to_quaternion, quaternion_to_heading
@@ -13,16 +23,59 @@ from numpy.random import normal
 # import numpy.random.normal as normal # normal(mu, sigma, count)
 
 class SlamAlgorithm(object):
+    '''
+    SlamAlgorithm
+
+    This class is a generic class that other algorithms can extend that
+    implements common core features, such as the motion model.
+
+    I may eventually add the derivative/Jacobian of the motion model here in
+    various forms
+    '''
     def __init__(self):
         pass
 
     def motion_update(self, twist):
+        '''
+        A method that should be extended for dynamic systems that will update
+        the system's position estimate based on a twist-control.
+
+        Inputs:
+        twist - ROS Twist message
+
+        Outputs:
+        N/A
+        '''
         pass
 
     def motion_model(self, previous_state, twist, dt):
+        '''
+        A method that returns a noisy (default) version of the motion model for
+        evolving a previous state based on a twist and a time step
+
+        Inputs:
+        previous_state - ROS Odometry-like
+        twist - ROS Twist message
+        dt - a time delta
+
+        Outputs:
+        next_state - ROS Odometry-like
+        '''
         return self.motion_model_noisy(previous_state, twist, dt)
 
     def motion_model_noisy(self, previous_state, twist, dt):
+        '''
+        A method that returns a noisy (default) version of the motion model for
+        evolving a previous state based on a twist and a time step
+
+        Inputs:
+        previous_state - ROS Odometry-like
+        twist - ROS Twist message
+        dt - a time delta
+
+        Outputs:
+        next_state - ROS Odometry-like
+        '''
         # pS      h1        |
         # 0-----------------0
         # |                 h2
@@ -81,6 +134,10 @@ class ParticleMixedSlam(SlamAlgorithm):
         self.robot_particles = []
         self.initialize_particle_filter()
 
+        self.Qt = Matrix([[1, 0, 0],
+                          [0, 1, 0],
+                          [0, 0, 1]])
+
         self.hypothesis_features = []
 
         self.last_time = rospy.Time.now()
@@ -88,20 +145,39 @@ class ParticleMixedSlam(SlamAlgorithm):
 
     @version(0, 2, 0)
     def initialize_particle_filter(self):
+        '''
+        create all of the initial guesses for the robot location based on a
+        coded-in distribution
+        Input:
+        N/A
+        Output:
+        N/A
+        '''
         for _ in range(0, int(self.M)):
             self.robot_particles.append(RobotParticle(0, 0.1))
 
     @version(0, 2, 0)
     def motion_update(self, twist):
+        '''
+        Based on a given twist (think ROS callback), evolve the particle list
+        Input:
+        twist
+        Output:
+        N/A
+        '''
         new_time = rospy.Time.now()
         dt = new_time - self.last_time
         for particle in self.robot_particles:
+            # pylint: disable=line-too-long
             particle.state = particle.motion_model(particle.state, self.last_twist, dt)
         self.last_time = new_time
         self.last_twist = twist
 
     @version(0, 2, 0)
     def measurement_update(self, measurement):
+        '''
+        Evolve the particle list based on a measurement (think ROS callback)
+        '''
         if isinstance(measurement, Observation):
             self.cam_observation_update(measurement)
         else:
@@ -114,18 +190,19 @@ class ParticleMixedSlam(SlamAlgorithm):
     @version(0, 2, 0)
     def cam_observation_update(self, cam_obs):
         '''Single bearing-color observation'''
-        # TODO(buckbaskin): change cam_obs to a 1xL matrix
-        zt = cam_obs
+        zt = Matrix([cam_obs.bearing,
+            cam_obs.color.r, cam_obs.color.g, cam_obs.color.b])
 
         self.motion_update(self.last_twist)
 
         for particle in self.robot_particles:
             j = particle.get_feature_id(zt)
             if j < 0: # not seen before
+                # pylint: disable=line-too-long
                 new_mean = self.inverse_cam_measurement_model(particle.state, zt)
                 H = self.jacobian_of_motion_model(particle.state, new_mean)
                 H_inverse = inverse(H)
-                new_covar = mm(mm(H_inverse, Qt), transpose(H_inverse))
+                new_covar = mm(mm(H_inverse, self.Qt), transpose(H_inverse))
                 particle.add_new_feature_ekf(new_mean, new_covar)
                 particle.weight = particle.default_weight()
             else: # j seen before
@@ -133,8 +210,8 @@ class ParticleMixedSlam(SlamAlgorithm):
                 # pylint: disable=line-too-long
                 # naming explains functionality
                 z_hat = particle.measurement_prediction(feature.mean, particle.state)
-                H = jacobian_of_motion_model(particle.state, feature.mean)
-                Q = mm(mm(H, feature.covar), transpose(H)) + Qt
+                H = self.jacobian_of_motion_model(particle.state, feature.mean)
+                Q = mm(mm(H, feature.covar), transpose(H)) + self.Qt
                 Q_inverse = inverse(Q)
                 K = mm(mm(feature.covar, transpose(H)), Q_inverse)
 
@@ -164,19 +241,31 @@ class ParticleMixedSlam(SlamAlgorithm):
         self.robot_particles = temp_particle_list
 
     def inverse_cam_measurement_model(self, state, measurement):
-        # TODO(buckbaskin): 
+        '''
+        Based on an estimated state and measurement, return the estimated pose
+        pose of the measured object
+        '''
+        # TODO(buckbaskin):
         # returns mean for a new measurement ekf (x,y,r,g,b)
-        return Matrix([0,0,0,0,0])
+        return Matrix([0, 0, 0, 0, 0])
 
     def jacobian_of_motion_model(self, state, mean):
+        '''
+        returns the partial derivative of the motion model with respect to the
+        components of the state
+        '''
         # TODO(buckbaskin):
         # self.jacobian_of_motion_model(particle.state, new_mean)
         # returns an H matrix
-        return Matrix([0,1],[2,3]])
+        return Matrix([[0, 1], [2, 3]])
 
 @version(0, 2, 0)
 class RobotParticle(Odometry):
+    '''
+    Represents a particle for FastSLAM
+    '''
     def __init__(self, mean, distribution):
+        super(RobotParticle, self).__init__()
         self.pose.pose.position.x = mean + normal(0, distribution)
         self.pose.pose.position.y = mean + normal(0, distribution)
 
@@ -211,7 +300,7 @@ class RobotParticle(Odometry):
 
 
 class FeatureModel(object):
-    def __init__(mean, covar):
+    def __init__(self, mean, covar):
         '''
         gaussian model of a feature state (x, y, r, g, b)
         '''
