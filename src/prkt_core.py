@@ -11,12 +11,6 @@ class SlamAlgorithm(object):
     def __init__(self):
         pass
 
-    def measurement_update(self, measurement):
-        pass
-
-    def measurement_model(self):
-        pass
-
     def motion_update(self, twist):
         pass
 
@@ -90,137 +84,70 @@ class ParticleMixedSlam(SlamAlgorithm):
     '''
 
     def __init__(self):
+        # particle = individiual state estimate + 1 kalman filter per map feature (total of N)
+        # Particle filter: M particles
+        self.M = 10
         self.robot_particles = []
-        self.feature_models = []
+        self.initialize_particle_filter()
+        
         self.hypothesis_features = []
+        
         self.last_time = rospy.Time.now()
         self.last_twist = Twist()
 
-    @version(1,0,0)
+    @version(0,2,0)
+    def initialize_particle_filter(self):
+        for _ in range(0,int(self.M)):
+            self.robot_particles.append(RobotParticle(0,0.1))
+
+    @version(0,2,0)
+    def motion_update(self, twist):
+        new_time = rospy.time.now()
+        dt = new_time - self.last_motion_update_time
+        for particle in self.robot_particles:
+            particle.state = motion_model(particle.state, self.last_control, dt)
+        self.last_motion_update_time = new_time
+        self.last_control = twist
+
+    @version(0,2,0)
     def measurement_update(self, measurement):
         if is_instance(measurement, Observation):
             self.cam_observation_update(measurement)
         else:
             pass
 
-    @version(1,0,0)
-    def condense_robot_state(self):
-        avg_state = 0
+    # @version(0,2,0)
+    # def condense_robot_state(self):
+    #     avg_state = 0
 
-    @version(1,0,0)
+    @version(0,2,0)
     def cam_observation_model(self, cam_obs):
         '''Single bearing-color observation'''
-        
-        self.motion_model(self.last_twist)
-        state = self.condense_robot_state()
+        zt = cam_obs
 
-        x = state.pose.pose.position.x
-        y = state.pose.pose.position.y
-        robot_heading = quaternion_to_heading(state.pose.pose.orientation)
-        map_orientation = robot_heading + cam_obs.bearing
+        self.motion_update(self.last_twist)
 
-        feature_matches = []
-
-        for feature in self.feature_models:
-            feature_matches.append(
-                (self.prob_feature_match(x, y, map_orientation, feature), 
-                    feature)
-                )
-
-        max_val = 0.0
-        index = 0
-        for i in range(0, len(feature_matches)):
-            if feature_matches[i][0] > max_val:
-                index = i
-
-        # matched the measurement to the most likely feature
-
-        # check probability of a new feature
-        new_chance = self.prob_new_feature()
-        if new_chance > max_val:
-            # then I probably saw a new feature
-            # add this to the hypothesis
-            # update map without updating robot location?
-            self.add_hypothesis(state, cam_obs)
-            # TODO(bucbkasin): finish the rest of this update
-        else:
-            # update that feature and the map
-            max_feature = self.feature_models[index]
-            self.feature_update(cam_obs, index)
-
-    @version(1,0,0)
-    def prob_feature_match(self, x, y, m_o, feature):
-        # TODO(bucbkasin)
-        return 0.5
-
-    @version(1,0,0)
-    def prob_new_feature(self, x, y, m_o):
-        # TODO(bucbkasin)
-        return 0.45
-
-    @version(1,0,0)
-    def add_hypothesis(self, state, cam_obs):
-        # check entire existing list for similar colors
-        # if there are 2 or more existing hypothesis that match well enough
-        # create a new map feature and pop those two off the list
-        # else, add hypothesis to the list
-
-        # TODO(bucbkasin)
-        pass
-
-    @version(1,0,0)
-    def feature_update(self, cam_obs, feature_index):
-        max_feature = self.feature_models[feature_index]
-        # update robot position
-        # update feature position
-        # TODO(bucbkasin)
-
-    @version(1,0,0)
-    def motion_update(self, twist):
-        self.last_twist = twist
-        dt = rospy.Time.now() - self.last_time
-        for i in range(0, len(self.robot_particles)):
-            self.robot_particles[i] = motion_model_noisy(self.robot_particles[i], twist, dt)
-        self.last_time = self.last_time + dt
-
-    @version(1,0,0)
-    def initialize_particle_filter(self, size):
-        self.robot_particles = []
-        for _ in range(0,size):
-            o = RobotParticle()
-            o.pose.pose.position.x = normal(0,1,1)
-            o.pose.pose.position.y = normal(0,1,1)
-            o.pose.pose.position.z = 0
-            o.pose.pose.orientation = heading_to_quaternion(normal(0,1,0))
-            o.twist.twist.linear.x = normal(0,1,1)
-            o.twist.twist.linear.y = 0
-            o.twist.twist.linear.z = 0
-            o.twist.twist.angular.x = 0
-            o.twist.twist.angular.y = 0
-            o.twist.twist.angular.z = normal(0,1,1)
-            self.robot_particles.append(o)
-
-    @version(1,0,0)
-    def initialize_known_landmarks(self):
-        self.landmarks = []
-
-@version(1,0,0)
+@version(0,2,0)
 class RobotParticle(Odometry):
-    pass
+    def __init__(self, mean, distribution):
+        self.pose.pose.position.x = mean + normal(0,distribution)
+        self.pose.pose.position.y = mean + normal(0,distribution)
 
-@version(1,0,0)
+
 class FeatureModel(object):
-    def __init__(x, x_sigma, y, y_signma, r, r_sigma, g, g_sigma, b, b_sigma):
+    def __init__(mean, covar):
         '''
         gaussian model of a feature state (x, y, r, g, b)
         '''
-        self.x = x
-        self.x_sigma = x_sigma
-        self.y = y
-        self.y_sigma = y_sigma
-        self.r = r
-        self.r_sigma = r_sigma
-        self.g = g
-        self.g_sigma = g_sigma
-        self.b = b
-        self.b_sigma = b_sigma
+        self.x = mean[0]
+        self.y = mean[1]
+        self.r = mean[2]
+        self.g = mean[3]
+        self.b = mean[4]
+        self.mean = mean[0:5]
+        for i in range(0,5):
+            covar[i] = covar[i][0:5]
+        self.covar = covar[0:5]
+
+    def mean(self):
+        return [x, y, r, g, b]

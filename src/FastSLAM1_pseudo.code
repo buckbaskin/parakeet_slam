@@ -150,16 +150,16 @@ import math.pi as pi
 
 def startup(...)
 
-# particle = individiual state estimate + 1 kalman filter per map feature (total of N)
-# Particle filter: M particles
-const M = 50 # = number of particles
+	# particle = individiual state estimate + 1 kalman filter per map feature (total of N)
+	# Particle filter: M particles
+	const M = 50 # = number of particles
 
-particle_list = [new_particle() * M]
+	particle_list = [new_particle() * M]
 
-const Qt = process noise
+	const Qt = process noise
 
-last_motion_update_time = rospy.time.now()
-last_control = Twist() # initialize to all 0s
+	last_motion_update_time = rospy.time.now()
+	last_control = Twist() # initialize to all 0s
 
 def command_update_callback(new_control):
 	# do a motion update only to the current time (time of new command)
@@ -211,25 +211,23 @@ def measurement_update_callback(new_measurement):
 
 			particle.weight = pow(2*pi*magnitude(Q), -1/2) * exp(-1/2 * transpose(zt - z_hat) * inverse(Q) * (zt - z_hat))
 
-		# WIP | start here, add in resampling
+	# done looping over old particles
 
-# done looping over old particles
+	# resample existing particle list
 
-# resample existing particle list
+	new_particle_list = []
 
-new_particle_list = []
-
-sum = 0
-for particle in particle_list:
-	sum = sum + particle.weight
-
-chosen = rand_in_range(0, sum)
-
-for _ = range(0, len(particle_list)):
+	sum = 0
 	for particle in particle_list:
-		chosen = chosen - particle.weight
-		if chosen < 0:
-			# choose this particle
-			new_particle_list.append(deep_copy(particle))
+		sum = sum + particle.weight
 
-particle_list = new_particle_list
+	chosen = rand_in_range(0, sum)
+
+	for _ = range(0, len(particle_list)):
+		for particle in particle_list:
+			chosen = chosen - particle.weight
+			if chosen < 0:
+				# choose this particle
+				new_particle_list.append(deep_copy(particle))
+
+	particle_list = new_particle_list
