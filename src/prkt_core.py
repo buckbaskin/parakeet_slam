@@ -275,31 +275,49 @@ class RobotParticle(Odometry):
         self.state = self
 
     def add_new_feature_ekf(self, mean, covar):
+        '''
+        Add a new feature to the particle's map, given the mean and covariance
+        to start with
+        '''
         # TODO(buckbaskin):
         pass
 
     def replace_feature_ekf(self, feature_id, mean, covar):
+        '''
+        Replace/update an existing feature with a new mean and covariance
+        '''
         # TODO(buckbaskin):
         pass
 
     def get_feature_id(self, measurement):
+        '''
+        get the index in the list of the feature that the measurement aligns
+        with. If the feature doesn't align, return a negative number to indicate
+        an unseen feature
+        '''
         # TODO(buckbaskin): may replace this method
         # for now, return < 0 for a new particle
         pass
 
     def get_feature_by_id(self, feature_id):
+        '''get the feature at the given index'''
         # TODO(buckbaskin): may replace this method
         pass
 
     def default_weight(self):
+        '''default weight for new particles in resampling'''
         # TODO(buckbaskin):
         return 0.5
 
     def deep_copy(self):
+        '''deep copy the particle for resampling'''
         return deepcopy(self)
 
 
 class FeatureModel(object):
+    '''
+    Model/EKF for representing the pose and color of map features
+    '''
     def __init__(self, mean, covar):
         '''
         gaussian model of a feature state (x, y, r, g, b)
@@ -315,7 +333,9 @@ class FeatureModel(object):
         self.covar_matrix = covar[0:5]
 
     def mean(self):
+        '''get the best estimate state of the EKF'''
         return [self.x, self.y, self.r, self.g, self.b]
 
     def covar(self):
+        '''get the covariance of the EKF'''
         return self.covar_matrix
