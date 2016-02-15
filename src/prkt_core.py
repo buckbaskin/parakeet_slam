@@ -3,7 +3,7 @@ import math
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
-from matrix import inverse, transpose, mm
+from matrix import inverse, transpose, mm, identity, magnitude
 from nav_msgs.msg import Odometry
 from random import random
 from utils import version, heading_to_quaternion, quaternion_to_heading
@@ -94,11 +94,11 @@ class ParticleMixedSlam(SlamAlgorithm):
     @version(0, 2, 0)
     def motion_update(self, twist):
         new_time = rospy.Time.now()
-        dt = new_time - self.last_motion_update_time
+        dt = new_time - self.last_time
         for particle in self.robot_particles:
-            particle.state = particle.motion_model(particle.state, self.last_control, dt)
-        self.last_motion_update_time = new_time
-        self.last_control = twist
+            particle.state = particle.motion_model(particle.state, self.last_twist, dt)
+        self.last_time = new_time
+        self.last_twist = twist
 
     @version(0, 2, 0)
     def measurement_update(self, measurement):
@@ -141,7 +141,7 @@ class ParticleMixedSlam(SlamAlgorithm):
                 new_covar = mm(identity(5) - mm(K, H), feature.covar)
 
                 particle.replace_feature_ekf(j, new_mean, new_covar)
-                particle.weight = pow(2*pi*magnitude(Q), -1/2) * exp(-0.5 * (transpose(zt - z_hat)*Q_inverse*(zt - z_hat)))
+                particle.weight = pow(2*math.pi*magnitude(Q), -1/2) * math.exp(-0.5 * (transpose(zt - z_hat)*Q_inverse*(zt - z_hat)))
             # endif
             # for all other features...do nothing
         # end for
@@ -164,6 +164,11 @@ class ParticleMixedSlam(SlamAlgorithm):
 
     def inverse_cam_measurement_model(self, state, measurement):
         # returns mean for a new measurement ekf
+        pass
+
+    def jacobian_of_motion_model(self, state, mean):
+        # self.jacobian_of_motion_model(particle.state, new_mean)
+        # returns an H matrix
         pass
 
 @version(0, 2, 0)
