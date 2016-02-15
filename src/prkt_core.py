@@ -1,6 +1,7 @@
 import rospy
 
 from geometry_msgs.msg import Twist
+from matrix import inverse, transpose, mmultiply, madd, msubtract
 from nav_msgs.msg import Odometry
 from utils import version
 from viz_feature_sim.msg import Observation
@@ -127,6 +128,27 @@ class ParticleMixedSlam(SlamAlgorithm):
 
         self.motion_update(self.last_twist)
 
+        for particle in particle_list:
+            j = particle.get_feature_id(zt)
+            if j < 0: # not seen before
+                new_mean = self.inverse_measurement_model(particle.state, zt)
+                H = self.jacobian_linearization_of_motion_model(particle.state, new_mean)
+                H_inverse = inverse(H)
+                new_covar = mmultiply(mmultiply(H_inverse, Qt), transpose(H_inverse))
+                particle.add_new_feature_ekf(new_mean, new_covar)
+                particle.weight = particle.default_weight()
+            else: # j seen before
+                old_measurement_ekf = particle.get_feature_by_id(j)
+                z_hat = particle.measurement_prediction(old_measurement_ekf.mean, particle.state)
+                H = jacobian_linearization_of_motion_model(particle.state, old_measurement_ekf.mean)
+                Q = madd(mmultiply(mmultiply(H, old_measurement_ekf.covar), transpose(H)), Qt)
+                Q_inverse = inverse(Q)
+                K = mmultiply(mmultiply(old_measurement_ekf.covar, transpose(H)), Q_inverse)
+
+                new_mean = madd(old_measurement_ekf.mean, mmultiply(K, msubtract(zt, z_hat)))
+                new_covar = mmultiply(msubtract(identity(5,5), mmultiply(K, H)), old_measurement_ekf.covar)
+
+
 @version(0,2,0)
 class RobotParticle(Odometry):
     def __init__(self, mean, distribution):
@@ -148,6 +170,7 @@ class RobotParticle(Odometry):
 
     def get_feature_id(self, measurement):
         # TODO(bucbkasin): may replace this method
+        # for now, return < 0 for a new particle
         pass
 
     def get_feature_by_id(self, feature_id):
