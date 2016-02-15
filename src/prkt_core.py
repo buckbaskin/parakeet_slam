@@ -133,6 +133,31 @@ class RobotParticle(Odometry):
         self.pose.pose.position.x = mean + normal(0,distribution)
         self.pose.pose.position.y = mean + normal(0,distribution)
 
+        self.feature_models = []
+        self.N = len(self.feature_models)
+        self.weight = 0
+        self.state = self
+
+    def add_new_feature_ekf(self, mean, covar):
+        # TODO(bucbkasin):
+        pass
+
+    def replace_feature_ekf(self, feature_id, mean, covar):
+        # TODO(bucbkasin):
+        pass
+
+    def get_feature_id(self, measurement):
+        # TODO(bucbkasin): may replace this method
+        pass
+
+    def get_feature_by_id(self, feature_id):
+        # TODO(bucbkasin): may replace this method
+        pass
+
+    def default_weight(self):
+        # TODO(buckbaskin):
+        return 0.5
+
 
 class FeatureModel(object):
     def __init__(mean, covar):
@@ -144,10 +169,13 @@ class FeatureModel(object):
         self.r = mean[2]
         self.g = mean[3]
         self.b = mean[4]
-        self.mean = mean[0:5]
+        self.mean_array = mean[0:5]
         for i in range(0,5):
             covar[i] = covar[i][0:5]
-        self.covar = covar[0:5]
+        self.covar_matrix = covar[0:5]
 
     def mean(self):
-        return [x, y, r, g, b]
+        return [self.x, self.y, self.r, self.g, self.b]
+
+    def covar(self):
+        return self.covar_matrix

@@ -183,21 +183,21 @@ def measurement_update_callback(new_measurement):
 	for particle in particle_list:
 		j = particle.get_feature_id(zt) # it will be particle dependent
 		if not j.seen_before(): # measured feature doesn't match existing particle-ekf
-			new_mean = inverse_measurement_model(particle.new_state, zt)
+			new_mean = inverse_measurement_model(particle.state, zt)
 
 			# ekf style update for covariance
-			H = jacobian_linearization_of_motion_model(particle.new_state, new_mean)
+			H = jacobian_linearization_of_motion_model(particle.state, new_mean)
 			
 			new_covar = inverse(H) * Qt * transpose(inverse(H))
 
 			particle.add_new_feature_ekf(new_mean, new_covar)
 
-			particle.weight = default_weight()
+			particle.weight = particle.default_weight()
 
 		else: # measured feature matches existing particle-ekf
 			old_measurement_ekf = particle.get_feature_by_id(j)
-			z_hat = measurement_prediction(old_measurement_ekf.mean, particle.new_state)
-			H = jacobian_linearization_of_motion_model(particle.new_state, old_measurement_ekf.mean)
+			z_hat = measurement_prediction(old_measurement_ekf.mean, particle.state)
+			H = jacobian_linearization_of_motion_model(particle.state, old_measurement_ekf.mean)
 			
 			Q = H * old_measurement_ekf.covar * transpose(H) + Qt
 
