@@ -21,7 +21,7 @@ for each particle:
 		feature estimate mean = inverse_measurement_model(state at t, measurement)
 
 		# ekf style update for covariance
-		H = derivative of motion model (Jacobian, linearization)
+		H = derivative of motion model (Jacobian, linearization based on state at t, feature estimate mean)
 		Qt = process noise
 
 		feature estimate covariance = H-inverse * Qt * (H-inverse)-transpose
@@ -31,7 +31,7 @@ for each particle:
 		add it back to the list of features for the particle
 
 	else feature seen before:
-		z hat = measurement prediction baed on measurement model
+		z hat = measurement prediction based on measurement model
 		H = derivative of motion model (Jacobian, linearization)
 		Qt = process noise
 
@@ -43,7 +43,91 @@ for each particle:
 
 		new feature estimate covariance = (Identity matrix - K * H)*(old feature estimate covariance)
 
+		weight = some calculation as a function of (Q, measurement - z hat)
+
 	for all other features not seen by the current measurement:
 		don't update!
 
 # done looping over old particles
+
+# resample existing particle list
+
+Create a new particle list
+
+for i = 0, i < length of old particles list, i++:
+	draw index k with a probability proportional to the weight of particle k
+	add particle k to the new particle list
+
+return new particle list
+
+
+# --- v1.1 a more "python"-y version ---
+#  measurements come in as callbacks
+#  algorithm assumes known correspondences for now
+#  color will make this known correspondences originally
+
+import math.pi as pi
+
+particle = individiual state estimate + 1 kalman filter per map feature (total of N)
+Particle filter: M particles
+
+const M = 50
+N = 0 to start, adding more as I go algon
+const Qt = process noise
+
+between calls to the function:
+control = current_robot_control()
+zt = observation = next_measurement()
+j = zt.feature_id
+
+for particle in old_particles:
+	
+	# generate a new state based on the control
+	particle.new_state = noisy_motion_model(particle.old_state, control)
+	
+	# for an observed feature j
+	if not j.seen_before():
+		new_mean = inverse_measurement_model(particle.new_state, zt)
+
+		# ekf style update for covariance
+		H = jacobian_linearization_of_motion_model(particle.new_state, new_mean)
+		
+		new_covar = inverse(H) * Qt * transpose(inverse(H))
+
+		particle.add_new_feature_ekf(new_mean, new_covar)
+
+		particle.weight = default_weight()
+
+	else: # feature seen before
+		k = get_matching_feature_index(j)
+		old_measurement_ekf = get_feature_by_index(k)
+		z_hat = measurement_prediction(old_measurement_ekf.mean, particle.new_state)
+		H = jacobian_linearization_of_motion_model(particle.new_state, old_measurement_ekf.mean)
+		
+		Q = H * old_measurement_ekf.covar * transpose(H) + Qt
+
+		K = old_measurement_ekf.covar * transpose(H) * inverse(Q)
+
+		new_mean = old_measurement_ekf.mean + K( zt - z_hat)
+
+		new_covar = (identity_matrix() - K * H)*(old_measurement_ekf.covar)
+
+		particle.replace_feature_ekf(k, new_mean, new_covar)
+
+		particle.weight = pow(2*pi*magnitude(Q), -1/2) * exp(-1/2 * transpose(zt - z_hat) * inverse(Q) * (zt - z_hat))
+
+# done looping over old particles
+
+# resample existing particle list
+
+# WIP(buckbaskin) Start here
+
+new_particle_list = []
+
+Create a new particle list
+
+for i = 0, i < length of old particles list, i++:
+	draw index k with a probability proportional to the weight of particle k
+	add particle k to the new particle list
+
+return new particle list
