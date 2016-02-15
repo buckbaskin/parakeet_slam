@@ -114,6 +114,7 @@ class ParticleMixedSlam(SlamAlgorithm):
     @version(0, 2, 0)
     def cam_observation_update(self, cam_obs):
         '''Single bearing-color observation'''
+        # TODO(buckbaskin): change cam_obs to a 1xL matrix
         zt = cam_obs
 
         self.motion_update(self.last_twist)
@@ -163,13 +164,15 @@ class ParticleMixedSlam(SlamAlgorithm):
         self.robot_particles = temp_particle_list
 
     def inverse_cam_measurement_model(self, state, measurement):
-        # returns mean for a new measurement ekf
-        pass
+        # TODO(buckbaskin): 
+        # returns mean for a new measurement ekf (x,y,r,g,b)
+        return Matrix([0,0,0,0,0])
 
     def jacobian_of_motion_model(self, state, mean):
+        # TODO(buckbaskin):
         # self.jacobian_of_motion_model(particle.state, new_mean)
         # returns an H matrix
-        pass
+        return Matrix([0,1],[2,3]])
 
 @version(0, 2, 0)
 class RobotParticle(Odometry):
