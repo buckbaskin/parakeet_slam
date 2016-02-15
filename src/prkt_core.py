@@ -198,13 +198,8 @@ class ParticleMixedSlam(SlamAlgorithm):
         for particle in self.robot_particles:
             j = particle.get_feature_id(zt)
             if j < 0: # not seen before
-                # pylint: disable=line-too-long
-                new_mean = self.inverse_cam_measurement_model(particle.state, zt)
-                H = self.jacobian_of_motion_model(particle.state, new_mean)
-                H_inverse = inverse(H)
-                new_covar = mm(mm(H_inverse, self.Qt), transpose(H_inverse))
-                particle.add_new_feature_ekf(new_mean, new_covar)
-                particle.weight = particle.default_weight()
+                # note, this will automagically add a new feature if possible
+                particle.weight = self.add_hypothesis(particle.state, zt)
             else: # j seen before
                 feature = particle.get_feature_by_id(j)
                 # pylint: disable=line-too-long
@@ -240,14 +235,49 @@ class ParticleMixedSlam(SlamAlgorithm):
 
         self.robot_particles = temp_particle_list
 
-    def inverse_cam_measurement_model(self, state, measurement):
+    def add_hypothesis(self, state, measurement):
         '''
-        Based on an estimated state and measurement, return the estimated pose
-        pose of the measured object
+        replaces inverse_cam_measurement_model(...)
+
+        instead of immediately returning the mean, add the measurement to a list
+        of hypothesis data for creating new measurements.
+        If it matches a group of existing hypotheses, they will all be removed
+        from hypothesis data and then combined into a new feature-EKF.
+        Else, it will just be accumulated into the hypothesis list
+
+        if hypothesis are combined:
+            return new_ekf_weight()
+        else:
+            return no_new_ekf_weight()
+        '''
+
+        self.hypothesis_features.append((state, measurement,))
+        # ...
+        # TODO(buckbaskin): implement hypothesis matching
+
+        # if combined...
+            # new_mean = self.triangulate(particle.state, zt)
+            # H = self.jacobian_of_motion_model(particle.state, new_mean)
+            # H_inverse = inverse(H)
+            # new_covar = mm(mm(H_inverse, self.Qt), transpose(H_inverse))
+            # particle.add_new_feature_ekf(new_mean, new_covar)
+            # return new_ekf_weight()
+
+        return self.no_new_ekf_weight()
+
+    def new_ekf_weight(self):
+        '''
+        default weight for new particles based on new Feature-EKF in resampling
         '''
         # TODO(buckbaskin):
-        # returns mean for a new measurement ekf (x,y,r,g,b)
-        return Matrix([0, 0, 0, 0, 0])
+        return 0.5
+
+    def no_new_ekf_weight(self):
+        '''
+        default weight for new particles based on no new Feature-EKF created
+        '''
+        # TODO(buckbaskin):
+        return 0.5
 
     def jacobian_of_motion_model(self, state, mean):
         '''
@@ -303,11 +333,6 @@ class RobotParticle(Odometry):
         '''get the feature at the given index'''
         # TODO(buckbaskin): may replace this method
         pass
-
-    def default_weight(self):
-        '''default weight for new particles in resampling'''
-        # TODO(buckbaskin):
-        return 0.5
 
     def deep_copy(self):
         '''deep copy the particle for resampling'''
