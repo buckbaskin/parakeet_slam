@@ -6,8 +6,44 @@ Particle filter: M particles
 const M = 50
 N = 0 to start, adding more as I go algon
 
-# v1 (direct from book, bearing + range - color)
+# --- v1 (direct from book, bearing + range - color) ---
 #  algorithm assumes known correspondences for now
 #  color will make this known correspondences originally
 
 for each particle:
+	have the particle from the previous time step (t-1)
+
+	# generate a new state based on the control
+	state at t = noisy_motion_model(state at t-1, control at t)
+
+	# for an observed feature j
+	if feature j never seen before:
+		feature estimate mean = inverse_measurement_model(state at t, measurement)
+
+		# ekf style update for covariance
+		H = derivative of motion model (Jacobian, linearization)
+		Qt = process noise
+
+		feature estimate covariance = H-inverse * Qt * (H-inverse)-transpose
+
+		weight = default importance p0
+
+		add it back to the list of features for the particle
+
+	else feature seen before:
+		z hat = measurement prediction baed on measurement model
+		H = derivative of motion model (Jacobian, linearization)
+		Qt = process noise
+
+		Q = H * (old feature estimate covariance) * H-transpose + Qt
+
+		K = kalman gain = (old feature estimate covariance) * H-transpose * Q-inverse
+
+		new feature estimate mean = old feature estimate mean + K( measurement - z hat)
+
+		new feature estimate covariance = (Identity matrix - K * H)*(old feature estimate covariance)
+
+	for all other features not seen by the current measurement:
+		don't update!
+
+# done looping over old particles
