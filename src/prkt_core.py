@@ -1,8 +1,10 @@
 import rospy
 
+from copy import deepcopy
 from geometry_msgs.msg import Twist
-from matrix import inverse, transpose, mmultiply, madd, msubtract
+from matrix import inverse, transpose, mm
 from nav_msgs.msg import Odometry
+from random import random
 from utils import version
 from viz_feature_sim.msg import Observation
 
@@ -134,20 +136,41 @@ class ParticleMixedSlam(SlamAlgorithm):
                 new_mean = self.inverse_measurement_model(particle.state, zt)
                 H = self.jacobian_linearization_of_motion_model(particle.state, new_mean)
                 H_inverse = inverse(H)
-                new_covar = mmultiply(mmultiply(H_inverse, Qt), transpose(H_inverse))
+                new_covar = mm(mm(H_inverse, Qt), transpose(H_inverse))
                 particle.add_new_feature_ekf(new_mean, new_covar)
                 particle.weight = particle.default_weight()
             else: # j seen before
                 old_measurement_ekf = particle.get_feature_by_id(j)
                 z_hat = particle.measurement_prediction(old_measurement_ekf.mean, particle.state)
                 H = jacobian_linearization_of_motion_model(particle.state, old_measurement_ekf.mean)
-                Q = madd(mmultiply(mmultiply(H, old_measurement_ekf.covar), transpose(H)), Qt)
+                Q = mm(mm(H, old_measurement_ekf.covar), transpose(H)) + Qt
                 Q_inverse = inverse(Q)
-                K = mmultiply(mmultiply(old_measurement_ekf.covar, transpose(H)), Q_inverse)
+                K = mm(mm(old_measurement_ekf.covar, transpose(H)), Q_inverse)
 
-                new_mean = madd(old_measurement_ekf.mean, mmultiply(K, msubtract(zt, z_hat)))
-                new_covar = mmultiply(msubtract(identity(5,5), mmultiply(K, H)), old_measurement_ekf.covar)
+                new_mean = old_measurement_ekf.mean + mm(K, zt - z_hat)
+                new_covar = mm(identity(5,5) - mm(K, H), old_measurement_ekf.covar)
 
+                particle.replace_feature_ekf(j, new_mean, new_covar)
+                particle.weight = pow(2*pi*magnitude(Q), -1/2) * exp(-0.5 * (transpose(zt - z_hat)*Q_inverse*(zt - z_hat)))
+            # endif
+            # for all other features...do nothing
+        # end for
+        
+        temp_particle_list = []
+        sum_ = 0
+        for particle in particle_list:
+            sum_ = sum_ + particle.weight
+
+        chosen = random()*sum_
+
+        for _ in range(0, len(particle_list)):
+            for particle in particle_list:
+                chosen = chosen - particle.weight
+                if chosen < 0:
+                    # choose this particle
+                    new_particle_list.append(particle.deep_copy())
+
+        particle_list = temp_particle_list
 
 @version(0,2,0)
 class RobotParticle(Odometry):
@@ -180,6 +203,9 @@ class RobotParticle(Odometry):
     def default_weight(self):
         # TODO(buckbaskin):
         return 0.5
+
+    def deep_copy(self):
+        return deepcopy(self)
 
 
 class FeatureModel(object):
