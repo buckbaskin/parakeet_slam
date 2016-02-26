@@ -37,6 +37,7 @@ class FastSLAM(object):
             particle.weight = 1
             correspondence = particle.match_features_to_scan(scan)
             for pair in correspondence:
+                blob = pair[1]
                 if pair[0] < 0:
                     # new feature observed
                     particle.add_hypothesis(particle.state, blob)
@@ -45,9 +46,8 @@ class FastSLAM(object):
                     # existing feature observed
                     # generate expected measurement based on feature id
                     pseudoblob = particle.generate_measurement(pair[0])
-                    blob = pair[1]
                     bigH = particle.measurement_jacobian(pair[0])
-                    bigQ = particle.measurement_covariance(bigH, pair[0], Qt)
+                    bigQ = particle.measurement_covariance(bigH, pair[0], self.Qt)
                     bigQinv = inverse(bigQ)
                     bigK = particle.kalman_gain(pair[0], bigH, bigQinv)
 
@@ -56,7 +56,7 @@ class FastSLAM(object):
                     (particle.get_feature_by_id(pair[0])
                         .update_covar(bigK, bigH))
 
-                    weighty = particle.importance_factor(bigQ, blog, pseudoblob)
+                    weighty = particle.importance_factor(bigQ, blob, pseudoblob)
                     particle.weight *= weighty
 
         self.low_variance_resample()
@@ -81,7 +81,7 @@ class FastSLAM(object):
         # TODO(buckbaskin):
         pass
 
-    def low_variance_resample():
+    def low_variance_resample(self):
         '''
         Resample particles based on weights
         '''
@@ -90,10 +90,10 @@ class FastSLAM(object):
 
 
 class FilterParticle(object):
-    def __init__(self):
-        pass
+    def __init__(self, odom = Odometry()):
+        self.state = odom
 
-    def get_feature_by_id(self, id):
+    def get_feature_by_id(self, id_):
         # TODO(buckbaskin):
         return Feature()
 
@@ -108,6 +108,7 @@ class FilterParticle(object):
         # TODO(buckbaskin):
         johndoe = []
         johndoe.append((-1, Blob()))
+        johndoe.append((-2, scan.observes[0]))
         return johndoe
  
     def add_hypothesis(self, state, blob):
@@ -132,7 +133,8 @@ class FilterParticle(object):
         # TODO(buckbaskin):
         state = self.state
         old_mean = self.get_feature_by_id(feature_id).mean
-        return np.array([[0, 0],[0, 0]])
+        return np.array([[0, 0],
+                         [0, 0]])
 
     def measurement_covariance(self, bigH, feature_id, Qt):
         '''
