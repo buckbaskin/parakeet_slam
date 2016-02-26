@@ -3,36 +3,31 @@ I:  8, 0: Locally disabling C0103 (locally-disabled)
 I:  9, 0: Locally disabling R0201 (locally-disabled)
 I: 10, 0: Locally disabling W0511 (locally-disabled)
 C: 35, 0: Trailing whitespace (trailing-whitespace)
-C:112, 0: Trailing whitespace (trailing-whitespace)
-C:117, 0: Trailing whitespace (trailing-whitespace)
-C:135, 0: Exactly one space required after comma
-        return np.array([[0, 0],[0, 0]])
-                               ^ (bad-whitespace)
+C: 50, 0: Line too long (82/80) (line-too-long)
+C: 93, 0: No space allowed around keyword argument assignment
+    def __init__(self, odom = Odometry()):
+                            ^ (bad-whitespace)
+C:113, 0: Trailing whitespace (trailing-whitespace)
+C:118, 0: Trailing whitespace (trailing-whitespace)
 C: 25, 0: Missing class docstring (missing-docstring)
+E: 30,18: Module 'numpy' has no 'array' member (no-member)
 C: 32, 4: Missing method docstring (missing-docstring)
-E: 36,24: Undefined variable 'particle_list' (undefined-variable)
-E: 42,60: Using variable 'blob' before assignment (used-before-assignment)
-E: 50,74: Undefined variable 'Qt' (undefined-variable)
-E: 59,63: Undefined variable 'blog' (undefined-variable)
-E: 62, 8: Too many positional arguments for function call (too-many-function-args)
-E: 84, 4: Method has no argument (no-method-argument)
-E: 89, 8: Undefined variable 'self' (undefined-variable)
-E: 89,25: Undefined variable 'self' (undefined-variable)
+W: 89, 8: Attribute 'particles' defined outside __init__ (attribute-defined-outside-init)
 C: 92, 0: Missing class docstring (missing-docstring)
-W: 96,32: Redefining built-in 'id' (redefined-builtin)
 C: 96, 4: Missing method docstring (missing-docstring)
-W: 96,32: Unused argument 'id' (unused-argument)
-W:100,37: Unused argument 'scan' (unused-argument)
-E:133,16: Instance of 'FilterParticle' has no 'state' member (no-member)
-W:134, 8: Unused variable 'old_mean' (unused-variable)
-W:133, 8: Unused variable 'state' (unused-variable)
-C:155, 4: Missing method docstring (missing-docstring)
-W:155,32: Unused argument 'bigQ' (unused-argument)
-W:155,38: Unused argument 'blob' (unused-argument)
-W:155,44: Unused argument 'pseudoblob' (unused-argument)
-C:160, 0: Missing class docstring (missing-docstring)
-C:170, 4: Missing method docstring (missing-docstring)
-R:160, 0: Too few public methods (1/2) (too-few-public-methods)
+W: 96,32: Unused argument 'id_' (unused-argument)
+E:136,15: Module 'numpy' has no 'array' member (no-member)
+W:135, 8: Unused variable 'old_mean' (unused-variable)
+W:134, 8: Unused variable 'state' (unused-variable)
+C:157, 4: Missing method docstring (missing-docstring)
+W:157,32: Unused argument 'bigQ' (unused-argument)
+W:157,38: Unused argument 'blob' (unused-argument)
+W:157,44: Unused argument 'pseudoblob' (unused-argument)
+C:162, 0: Missing class docstring (missing-docstring)
+E:165,20: Module 'numpy' has no 'array' member (no-member)
+E:166,21: Module 'numpy' has no 'array' member (no-member)
+C:172, 4: Missing method docstring (missing-docstring)
+R:162, 0: Too few public methods (1/2) (too-few-public-methods)
 W: 20, 0: Unused import normal (unused-import)
 W: 21, 0: Unused import random (unused-import)
 W: 18, 0: Unused import magnitude (unused-import)
@@ -49,7 +44,7 @@ W: 13, 0: Unused import math (unused-import)
 
 Report
 ======
-73 statements analysed.
+74 statements analysed.
 
 Messages by category
 --------------------
@@ -57,13 +52,13 @@ Messages by category
 +-----------+-------+---------+-----------+
 |type       |number |previous |difference |
 +===========+=======+=========+===========+
-|convention |11     |13       |-2.00      |
+|convention |12     |11       |+1.00      |
 +-----------+-------+---------+-----------+
 |refactor   |1      |1        |=          |
 +-----------+-------+---------+-----------+
-|warning    |20     |20       |=          |
+|warning    |19     |20       |-1.00      |
 +-----------+-------+---------+-----------+
-|error      |13     |13       |=          |
+|error      |4      |13       |-9.00      |
 +-----------+-------+---------+-----------+
 
 
@@ -71,56 +66,37 @@ Messages by category
 Messages
 --------
 
-+-----------------------+------------+
-|message id             |occurrences |
-+=======================+============+
-|unused-import          |12          |
-+-----------------------+------------+
-|missing-docstring      |7           |
-+-----------------------+------------+
-|unused-argument        |5           |
-+-----------------------+------------+
-|undefined-variable     |5           |
-+-----------------------+------------+
-|no-member              |5           |
-+-----------------------+------------+
-|trailing-whitespace    |3           |
-+-----------------------+------------+
-|locally-disabled       |3           |
-+-----------------------+------------+
-|unused-variable        |2           |
-+-----------------------+------------+
-|used-before-assignment |1           |
-+-----------------------+------------+
-|too-many-function-args |1           |
-+-----------------------+------------+
-|too-few-public-methods |1           |
-+-----------------------+------------+
-|redefined-builtin      |1           |
-+-----------------------+------------+
-|no-method-argument     |1           |
-+-----------------------+------------+
-|bad-whitespace         |1           |
-+-----------------------+------------+
++-------------------------------+------------+
+|message id                     |occurrences |
++===============================+============+
+|unused-import                  |12          |
++-------------------------------+------------+
+|missing-docstring              |7           |
++-------------------------------+------------+
+|unused-argument                |4           |
++-------------------------------+------------+
+|no-member                      |4           |
++-------------------------------+------------+
+|trailing-whitespace            |3           |
++-------------------------------+------------+
+|locally-disabled               |3           |
++-------------------------------+------------+
+|unused-variable                |2           |
++-------------------------------+------------+
+|too-few-public-methods         |1           |
++-------------------------------+------------+
+|line-too-long                  |1           |
++-------------------------------+------------+
+|bad-whitespace                 |1           |
++-------------------------------+------------+
+|attribute-defined-outside-init |1           |
++-------------------------------+------------+
 
 
 
 Global evaluation
 -----------------
-Your code has been rated at -3.29/10 (previous run: -3.56/10, +0.27)
-
-Duplication
------------
-
-+-------------------------+------+---------+-----------+
-|                         |now   |previous |difference |
-+=========================+======+=========+===========+
-|nb duplicated lines      |0     |0        |=          |
-+-------------------------+------+---------+-----------+
-|percent duplicated lines |0.000 |0.000    |=          |
-+-------------------------+------+---------+-----------+
-
-
+Your code has been rated at 2.97/10 (previous run: -3.29/10, +6.26)
 
 Statistics by type
 ------------------
@@ -139,19 +115,32 @@ Statistics by type
 
 
 
+Duplication
+-----------
+
++-------------------------+------+---------+-----------+
+|                         |now   |previous |difference |
++=========================+======+=========+===========+
+|nb duplicated lines      |0     |0        |=          |
++-------------------------+------+---------+-----------+
+|percent duplicated lines |0.000 |0.000    |=          |
++-------------------------+------+---------+-----------+
+
+
+
 Raw metrics
 -----------
 
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |80     |49.69 |80       |=          |
+|code      |82     |50.31 |80       |+2.00      |
 +----------+-------+------+---------+-----------+
-|docstring |50     |31.06 |50       |=          |
+|docstring |50     |30.67 |50       |=          |
 +----------+-------+------+---------+-----------+
-|comment   |12     |7.45  |12       |=          |
+|comment   |12     |7.36  |12       |=          |
 +----------+-------+------+---------+-----------+
-|empty     |19     |11.80 |19       |=          |
+|empty     |19     |11.66 |19       |=          |
 +----------+-------+------+---------+-----------+
 
 

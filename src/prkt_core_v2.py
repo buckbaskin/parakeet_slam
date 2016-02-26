@@ -26,13 +26,13 @@ class FastSLAM(object):
     def __init__(self):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
-        self.state = Odometry()
+        self.particles = [FilterParticle(), FilterParticle()]
         self.Qt = np.array([[1, 0], [0, 1]]) # measurement noise?
 
     def cam_cb(self, scan):
         # motion update all particles
         self.motion_update(self.last_control)
-        
+
         for particle in self.particles:
             particle.weight = 1
             correspondence = particle.match_features_to_scan(scan)
@@ -90,7 +90,7 @@ class FastSLAM(object):
 
 
 class FilterParticle(object):
-    def __init__(self, odom = Odometry()):
+    def __init__(self, odom=Odometry()):
         self.state = odom
 
     def get_feature_by_id(self, id_):
@@ -110,12 +110,12 @@ class FilterParticle(object):
         johndoe.append((-1, Blob()))
         johndoe.append((-2, scan.observes[0]))
         return johndoe
- 
+
     def add_hypothesis(self, state, blob):
         '''
         add a hypothetical new feature to the non-invertable measurement model
         check to see if it matches a hypothetical feature. If that hypothetical
-        is strong enough, add it to the particles 
+        is strong enough, add it to the particles
         input:
             Odometry state (position of observation)
             Blob blob (observation)
