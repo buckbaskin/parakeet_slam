@@ -3,6 +3,8 @@ Parakeet-Core
 
 This is the Python module that implements the SLAM algorithm for use in a ROS
 node.
+
+# Matrices are rows by columns
 '''
 
 # pylint: disable=invalid-name
@@ -166,13 +168,52 @@ class FilterParticle(object):
         '''
         Calculate the Jacobian of the measurement model with respect to the
         current particle state and the give feature's mean
+
+        bigH is the Jacobian of the measurement model with respect to the best
+        estimate of the robot's position at the time of the update (computed at 
+        the mean of the feature, aka the predicted mean) PR p. 207
+
+        input:
+            int feature_id
+        output:
+            np.ndarray 4x3 (bigH)
         '''
         # TODO(buckbaskin):
-        # TODO(buckbaskin): start here
+        '''
+        State = { x, y, heading } = [x , y, heading (theta)]
+        measurements = { bearing, r, g, b} = [bearing (phi), r, g, b]
+
+        Jacobian = 
+        [[d phi/d x, d phi/d y, d phi/d theta],
+         [d r/d x,   d r/d y,   d r/d theta  ],
+         [d g/d x,   d g/d y,   d g/d theta  ],
+         [d b/d x,   d b/d y,   d b/d theta  ]]
+        '''
         state = self.state
-        old_mean = self.get_feature_by_id(feature_id).mean
-        return np.array([[0, 0],
-                         [0, 0]])
+        mean_x = state.pose.pose.position.x
+        mean_y = state.pose.pose.position.y
+        feature_mean = self.get_feature_by_id(feature_id).mean
+        feature_x = feature_mean.x
+        feature_y = feature_mean.y
+        
+        # phi = atan2(dy, dx) - heading
+        # q = (feature_x - mean_x)^2 + (feature_y - mean_y)^2
+        q = pow(feature_x - mean_x, 2) + pow(feature_y - mean_y, 2)
+
+        # d_phi/d_x = feature_y - mean_y / q
+        # TODO(buckbaskin): Start here
+        d_phi_d_x = 0.0
+        
+        # d_phi/d_y = feature_x - mean_x / q
+        d_phi_d_y = 0.0
+
+        # d_phi/d_theta = -1
+        d_phi_d_theta = -1.0
+
+        return np.array([[d_phi_d_x, d_phi_d_y, d_phi_d_theta],
+                         [0.0, 0.0, 0.0],
+                         [0.0, 0.0, 0.0],
+                         [0.0, 0.0, 0.0]])
 
     def measurement_covariance(self, bigH, feature_id, Qt):
         '''
