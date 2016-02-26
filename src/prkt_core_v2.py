@@ -128,6 +128,14 @@ class FilterParticle(object):
 
     def match_features_to_scan(self, scan):
         '''
+        Version 1: independently match each scan to the most likely feature
+        Version 2: match each scan to a unique feature 
+            (if they are sufficiently far apart)
+        Version 3: graph based enhanced lookup
+            Use a graph of features that have been seen together to speed up the
+            search for features that are likely to be seen
+            Might be: run v1, then take the most likely, and search from there
+            for features to match
         input:
             VizScan scan
         output:
@@ -160,6 +168,7 @@ class FilterParticle(object):
         current particle state and the give feature's mean
         '''
         # TODO(buckbaskin):
+        # TODO(buckbaskin): start here
         state = self.state
         old_mean = self.get_feature_by_id(feature_id).mean
         return np.array([[0, 0],
