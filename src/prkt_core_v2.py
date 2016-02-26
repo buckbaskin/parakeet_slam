@@ -111,10 +111,20 @@ class FastSLAM(object):
 class FilterParticle(object):
     def __init__(self, odom=Odometry()):
         self.state = odom
+        self.feature_set = {}
 
     def get_feature_by_id(self, id_):
-        # TODO(buckbaskin):
-        return Feature()
+        '''
+        get the feature by id
+        currently, if there is no feature for that id, it raises an error
+        input:
+            int (feature)id_
+        output:
+            Feature
+        raises:
+            KeyError
+        '''
+        return self.feature_set[id_]
 
     def match_features_to_scan(self, scan):
         '''
