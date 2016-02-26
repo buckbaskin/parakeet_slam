@@ -7,7 +7,6 @@ node.
 
 # pylint: disable=invalid-name
 # pylint: disable=no-self-use
-# pylint: disable=fixme
 
 import rospy
 import math
@@ -85,8 +84,28 @@ class FastSLAM(object):
         '''
         Resample particles based on weights
         '''
-        # TODO(buckbaskin):
-        self.particles = self.particles
+        sum_ = reduce(lambda accum, element: accum+element.weight, self.particles, 0.0)
+        range_ = sum_/float(len(self.particles))
+        step = random()*range_
+        temp_particles = []
+        count = 0
+
+        ### resample ###
+
+        for particle in self.particles:
+            step = step - particle.weight
+            while step <= 0.0 and count < len(self.particles):
+                # add it to the list
+                temp_particles.append(deepcopy(particle))
+                # do I need the deepcopy? 
+                #   If the motion model creates a new particle, no
+                
+                # take a step forward
+                step += range_
+                count += 1
+                # repeat if its still in the particle range
+
+        self.particles = temp_particles
 
 
 class FilterParticle(object):
