@@ -1,0 +1,193 @@
+************* Module prkt_core_v2
+I:  8, 0: Locally disabling C0103 (locally-disabled)
+I:  9, 0: Locally disabling R0201 (locally-disabled)
+I: 10, 0: Locally disabling W0511 (locally-disabled)
+C: 35, 0: Trailing whitespace (trailing-whitespace)
+C:112, 0: Trailing whitespace (trailing-whitespace)
+C:117, 0: Trailing whitespace (trailing-whitespace)
+C:135, 0: Exactly one space required after comma
+        return np.array([[0, 0],[0, 0]])
+                               ^ (bad-whitespace)
+C: 25, 0: Missing class docstring (missing-docstring)
+C: 32, 4: Missing method docstring (missing-docstring)
+E: 36,24: Undefined variable 'particle_list' (undefined-variable)
+E: 42,60: Using variable 'blob' before assignment (used-before-assignment)
+E: 50,74: Undefined variable 'Qt' (undefined-variable)
+E: 59,63: Undefined variable 'blog' (undefined-variable)
+E: 62, 8: Too many positional arguments for function call (too-many-function-args)
+E: 84, 4: Method has no argument (no-method-argument)
+E: 89, 8: Undefined variable 'self' (undefined-variable)
+E: 89,25: Undefined variable 'self' (undefined-variable)
+C: 92, 0: Missing class docstring (missing-docstring)
+W: 96,32: Redefining built-in 'id' (redefined-builtin)
+C: 96, 4: Missing method docstring (missing-docstring)
+W: 96,32: Unused argument 'id' (unused-argument)
+W:100,37: Unused argument 'scan' (unused-argument)
+E:133,16: Instance of 'FilterParticle' has no 'state' member (no-member)
+E:135,15: Module 'numpy' has no 'array' member (no-member)
+W:134, 8: Unused variable 'old_mean' (unused-variable)
+W:133, 8: Unused variable 'state' (unused-variable)
+C:155, 4: Missing method docstring (missing-docstring)
+W:155,32: Unused argument 'bigQ' (unused-argument)
+W:155,38: Unused argument 'blob' (unused-argument)
+W:155,44: Unused argument 'pseudoblob' (unused-argument)
+C:160, 0: Missing class docstring (missing-docstring)
+E:163,20: Module 'numpy' has no 'array' member (no-member)
+E:164,21: Module 'numpy' has no 'array' member (no-member)
+C:170, 4: Missing method docstring (missing-docstring)
+R:160, 0: Too few public methods (1/2) (too-few-public-methods)
+W: 20, 0: Unused import normal (unused-import)
+W: 21, 0: Unused import random (unused-import)
+W: 18, 0: Unused import magnitude (unused-import)
+W: 23, 0: Unused import VizScan (unused-import)
+W: 16, 0: Unused import deepcopy (unused-import)
+W: 18, 0: Unused import identity (unused-import)
+W: 18, 0: Unused import Matrix (unused-import)
+W: 18, 0: Unused import mm (unused-import)
+W: 22, 0: Unused import version (unused-import)
+W: 22, 0: Unused import heading_to_quaternion (unused-import)
+W: 22, 0: Unused import quaternion_to_heading (unused-import)
+W: 13, 0: Unused import math (unused-import)
+
+
+Report
+======
+73 statements analysed.
+
+Messages by category
+--------------------
+
++-----------+-------+---------+-----------+
+|type       |number |previous |difference |
++===========+=======+=========+===========+
+|convention |11     |13       |-2.00      |
++-----------+-------+---------+-----------+
+|refactor   |1      |1        |=          |
++-----------+-------+---------+-----------+
+|warning    |20     |20       |=          |
++-----------+-------+---------+-----------+
+|error      |13     |13       |=          |
++-----------+-------+---------+-----------+
+
+
+
+Messages
+--------
+
++-----------------------+------------+
+|message id             |occurrences |
++=======================+============+
+|unused-import          |12          |
++-----------------------+------------+
+|missing-docstring      |7           |
++-----------------------+------------+
+|unused-argument        |5           |
++-----------------------+------------+
+|undefined-variable     |5           |
++-----------------------+------------+
+|no-member              |5           |
++-----------------------+------------+
+|trailing-whitespace    |3           |
++-----------------------+------------+
+|locally-disabled       |3           |
++-----------------------+------------+
+|unused-variable        |2           |
++-----------------------+------------+
+|used-before-assignment |1           |
++-----------------------+------------+
+|too-many-function-args |1           |
++-----------------------+------------+
+|too-few-public-methods |1           |
++-----------------------+------------+
+|redefined-builtin      |1           |
++-----------------------+------------+
+|no-method-argument     |1           |
++-----------------------+------------+
+|bad-whitespace         |1           |
++-----------------------+------------+
+
+
+
+Global evaluation
+-----------------
+Your code has been rated at -3.29/10 (previous run: -3.56/10, +0.27)
+
+Duplication
+-----------
+
++-------------------------+------+---------+-----------+
+|                         |now   |previous |difference |
++=========================+======+=========+===========+
+|nb duplicated lines      |0     |0        |=          |
++-------------------------+------+---------+-----------+
+|percent duplicated lines |0.000 |0.000    |=          |
++-------------------------+------+---------+-----------+
+
+
+
+Statistics by type
+------------------
+
++---------+-------+-----------+-----------+------------+---------+
+|type     |number |old number |difference |%documented |%badname |
++=========+=======+===========+===========+============+=========+
+|module   |1      |1          |=          |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|class    |3      |3          |=          |0.00        |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|method   |15     |15         |=          |73.33       |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|function |0      |0          |=          |0           |0        |
++---------+-------+-----------+-----------+------------+---------+
+
+
+
+Raw metrics
+-----------
+
++----------+-------+------+---------+-----------+
+|type      |number |%     |previous |difference |
++==========+=======+======+=========+===========+
+|code      |80     |49.69 |80       |=          |
++----------+-------+------+---------+-----------+
+|docstring |50     |31.06 |50       |=          |
++----------+-------+------+---------+-----------+
+|comment   |12     |7.45  |12       |=          |
++----------+-------+------+---------+-----------+
+|empty     |19     |11.80 |19       |=          |
++----------+-------+------+---------+-----------+
+
+
+
+External dependencies
+---------------------
+::
+
+    geometry_msgs 
+      \-msg 
+        \-Twist (prkt_core_v2)
+    matrix 
+      \-Matrix (prkt_core_v2)
+      \-identity (prkt_core_v2)
+      \-inverse (prkt_core_v2)
+      \-magnitude (prkt_core_v2)
+      \-mm (prkt_core_v2)
+      \-transpose (prkt_core_v2)
+    nav_msgs 
+      \-msg 
+        \-Odometry (prkt_core_v2)
+    numpy (prkt_core_v2)
+      \-random 
+        \-normal (prkt_core_v2)
+    rospy (prkt_core_v2)
+    utils 
+      \-heading_to_quaternion (prkt_core_v2)
+      \-quaternion_to_heading (prkt_core_v2)
+      \-version (prkt_core_v2)
+    viz_feature_sim 
+      \-msg 
+        \-Blob (prkt_core_v2)
+        \-VizScan (prkt_core_v2)
+
+
+

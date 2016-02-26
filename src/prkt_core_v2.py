@@ -7,6 +7,7 @@ node.
 
 # pylint: disable=invalid-name
 # pylint: disable=no-self-use
+# pylint: disable=fixme
 
 import rospy
 import math
@@ -26,13 +27,13 @@ class FastSLAM(object):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
         self.state = Odometry()
-        self.Qt = np.array([[1,0],[0,1]]) # measurement noise?
+        self.Qt = np.array([[1, 0], [0, 1]]) # measurement noise?
 
     def cam_cb(self, scan):
         # motion update all particles
         self.motion_update(self.last_control)
         
-        for particle in particle_list:
+        for particle in self.particles:
             particle.weight = 1
             correspondence = particle.match_features_to_scan(scan)
             for pair in correspondence:
@@ -131,7 +132,7 @@ class FilterParticle(object):
         # TODO(buckbaskin):
         state = self.state
         old_mean = self.get_feature_by_id(feature_id).mean
-        return np.array([[0,0],[0,0]])
+        return np.array([[0, 0],[0, 0]])
 
     def measurement_covariance(self, bigH, feature_id, Qt):
         '''
@@ -159,12 +160,12 @@ class FilterParticle(object):
 class Feature(object):
     def __init__(self):
         # TODO(buckbaskin):
-        self.mean = np.array([1,2,3,4,5])
-        self.covar = np.array([ [1,0,0,0,0],
-                                [0,1,0,0,0],
-                                [0,0,1,0,0],
-                                [0,0,0,1,0],
-                                [0,0,0,0,1]])
+        self.mean = np.array([1, 2, 3, 4, 5])
+        self.covar = np.array([[1, 0, 0, 0, 0],
+                                [0, 1, 0, 0, 0],
+                                [0, 0, 1, 0, 0],
+                                [0, 0, 0, 1, 0],
+                                [0, 0, 0, 0, 1]])
 
     def update_mean(self, feature_id, kalman_gain, measure, expected_measure):
         pass
