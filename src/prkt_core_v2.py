@@ -238,9 +238,14 @@ class FilterParticle(object):
         return numpy.array(mm(mm(old_covar , transpose(bigH)) , Qinv))
 
     def importance_factor(self, bigQ, blob, pseudoblob):
-        # Comment this
         # TODO(buckbaskin):
-        return 0.1
+        # Comment this
+        v1 = 2*math.pi *magnitude(bigQ)
+        v1 = pow(v1, -0.5)
+        delz = blob - pseudoblob
+        delzt = transpose(delz)
+        v2 = math.exp(-0.5 * mm(mm(delzt, inverse(bigQ)), delz))
+        return v1 * v2
 
 class Feature(object):
     def __init__(self):
