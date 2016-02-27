@@ -80,8 +80,45 @@ class FastSLAM(object):
         output:
             None
         '''
-        # TODO(buckbaskin):
-        pass
+
+        twist = self.last_control
+        dt = rospy.Time.now() - self.last_update
+        for i in range(0, len(self.particles)):
+            self.particles[i] = motion_model(self.particles[i], self.last_control, dt)
+
+        self.last_update = self.last_update + dt
+        self.last_control = new_twist
+
+    def motion_model(self, particle, twist, dt):
+        # pS      h1        |
+        # 0-----------------0
+        # |                 h2
+        new_particle = FilterParticle()
+        new_particle.feature_set = deepcopy(particle.feature_set)
+
+        dheading = twist.twist.angular.z * dt
+
+        drive_noise = normal(0, .05, 1)
+        #TODO(buckbaskin): add drive noise proportional to v, w
+        ds = twist.twist.linear.x * dt + drive_noise
+
+        prev_heading = quaternion_to_heading(particle.pose.pose.orientation)
+
+        #TODO(buckbaskin): add heading noise proportional to v, w
+        heading_noise = normal(0, .05, 1)
+        heading_1 = prev_heading+dheading/2+heading_noise
+
+        heading_noise = normal(0, .05, 1)
+        heading_2 = heading_1+dheading/2+heading_noise
+
+        dx = ds*math.cos(heading_1)
+        dy = ds*math.cos(heading_1)
+
+        new_particle.state.pose.pose.position.x += dx
+        new_particle.state.pose.pose.position.y += dy
+        new_particle.state.pose.pose.orientation = heading_to_quaternion(heading_2)
+
+        return new_particle
 
     def low_variance_resample(self):
         '''
@@ -112,8 +149,8 @@ class FastSLAM(object):
 
 
 class FilterParticle(object):
-    def __init__(self, odom=Odometry()):
-        self.state = odom
+    def __init__(self, state=Odometry()):
+        self.state = state
         self.feature_set = {}
 
     def get_feature_by_id(self, id_):

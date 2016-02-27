@@ -28,9 +28,6 @@ class CamSlam360(object):
             self.measurement_update)
         rospy.spin()
 
-    def measurement_update(self, observation):
-        pass
-
 if __name__ == '__main__':
     CamSlam360()
 
