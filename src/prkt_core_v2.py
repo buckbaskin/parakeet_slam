@@ -178,7 +178,6 @@ class FilterParticle(object):
         output:
             np.ndarray 4x3 (bigH)
         '''
-        # TODO(buckbaskin):
         '''
         State = { x, y, heading } = [x , y, heading (theta)]
         measurements = { bearing, r, g, b} = [bearing (phi), r, g, b]
@@ -200,12 +199,11 @@ class FilterParticle(object):
         # q = (feature_x - mean_x)^2 + (feature_y - mean_y)^2
         q = pow(feature_x - mean_x, 2) + pow(feature_y - mean_y, 2)
 
-        # d_phi/d_x = feature_y - mean_y / q
-        # TODO(buckbaskin): Start here
-        d_phi_d_x = 0.0
+        # d_phi/d_x = (feature_y - mean_y) / q
+        d_phi_d_x = (feature_y - mean_y) / q
         
-        # d_phi/d_y = feature_x - mean_x / q
-        d_phi_d_y = 0.0
+        # d_phi/d_y = (feature_x - mean_x) / q
+        d_phi_d_y = (feature_x - mean_x) / q
 
         # d_phi/d_theta = -1
         d_phi_d_theta = -1.0
