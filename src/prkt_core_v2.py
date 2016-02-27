@@ -16,7 +16,7 @@ import numpy as np
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
-from matrix import Matrix, inverse, transpose, mm, identity, magnitude
+from matrix import inverse, transpose, mm, identity, magnitude
 from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
@@ -217,19 +217,25 @@ class FilterParticle(object):
         '''
         Calculate the covarance of the measurement with respect to the given
         Jacobian bigH, the feature's covariance and Qt (measurement noise?)
+        input:
+            TODO(buckbaskin):
+        output:
+            numpy.ndarray
         '''
-        # TODO(buckbaskin):
         old_covar = self.get_feature_by_id(feature_id).covar
-        return bigH * old_covar * transpose(bigH) + Qt
+        return numpy.array(madd(mm(mm(bigH , old_covar) , transpose(bigH)) , Qt))
 
     def kalman_gain(self, feature_id, bigH, Qinv):
         '''
         Calculate the kalman gain for the update of the feature based on the
         existing covariance of the feature, bigH, and the inverse of bigQ
+        input:
+            TODO(buckbaskin):
+        output:
+            numpy.ndarray
         '''
-        # TODO(buckbaskin):
         old_covar = self.get_feature_by_id(feature_id).covar
-        return old_covar * transpose(bigH) * Qinv
+        return numpy.array(mm(mm(old_covar , transpose(bigH)) , Qinv))
 
     def importance_factor(self, bigQ, blob, pseudoblob):
         # Comment this
