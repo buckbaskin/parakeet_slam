@@ -219,7 +219,9 @@ class FilterParticle(object):
         Calculate the covarance of the measurement with respect to the given
         Jacobian bigH, the feature's covariance and Qt (measurement noise?)
         input:
-            TODO(buckbaskin):
+            np.ndarray bigH (Jacobian of the measurement model)
+            int feature_id
+            np.ndarray Qt (measurement noise)
         output:
             numpy.ndarray
         '''
@@ -231,7 +233,9 @@ class FilterParticle(object):
         Calculate the kalman gain for the update of the feature based on the
         existing covariance of the feature, bigH, and the inverse of bigQ
         input:
-            TODO(buckbaskin):
+            int feature_id
+            np.ndarray bigH (Jacobian of the measurement model)
+            np.ndarray Qinv (inverse of Q, the measurement covariance)
         output:
             numpy.ndarray
         '''
