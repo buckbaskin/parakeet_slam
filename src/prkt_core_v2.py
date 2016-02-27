@@ -261,7 +261,14 @@ class Feature(object):
         self.covar = covar
 
     def update_mean(self, kalman_gain, measure, expected_measure):
-        pass
+        # TODO(buckbaskin):
+        # comment this
+        delz = measure - expected_measure
+        adjust = mm(kalman_gain, delz)
+        self.mean = mean + adjust
 
     def update_covar(self, kalman_gain, bigH):
+        # TODO(buckbaskin):
+        # comment this
+        # TODO(buckbaskin):
         pass
