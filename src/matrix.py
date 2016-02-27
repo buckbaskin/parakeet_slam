@@ -1,36 +1,7 @@
 import numpy as np
 
 from numpy import dot as mm
-
-# class Matrix(object):
-#     def __init__(self, array_like):
-#         print 'Matrix __init__ ...'
-#         self = np.array(array_like)
-#         print 'end __init__'
-
-    # def __add__(self, right):
-    #     madd(self, right)
-    # def __radd__(self, left):
-    #     madd(left, self)
-
-    # def __sub__(self, right):
-    #     msubtract(self, right)
-    # def __rsub__(self, left):
-    #     msubtract(left, self)
-
-    # def __mul__(self, right):
-    #     print '__mul__ override'
-    #     return np.dot(self, right)
-    # def __rmul__(self, left):
-    #     print '__rmul__ override'
-    #     return np.dot(left, self)
-
-    # def __xor__(self, power):
-    #     print('xor called')
-    #     if power == -1:
-    #         return inverse(self)
-    #     else:
-    #         return self
+from viz_feature_sim.msg import VizScan, Blob
 
 def Matrix(array_like):
     print 'Matrix method'
@@ -59,3 +30,9 @@ def identity(n):
 
 def magnitude(matrix):
     pass
+
+def blob_to_matrix(blob):
+    if isinstance(blob, Blob):
+        return np.array([blob.bearing, blob.color.r, blob.color.g, blob.color.b])
+    else:
+        return blob

@@ -17,6 +17,7 @@ import numpy as np
 from copy import deepcopy
 from geometry_msgs.msg import Twist
 from matrix import inverse, transpose, mm, identity, magnitude, madd, msubtract
+from matrix import blob_to_matrix
 from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
@@ -28,7 +29,7 @@ class FastSLAM(object):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
         self.particles = [FilterParticle(), FilterParticle()]
-        self.Qt = np.array([[1, 0], [0, 1]]) # measurement noise?
+        self.Qt = Matrix([[1, 0], [0, 1]]) # measurement noise?
 
     def cam_cb(self, scan):
         # motion update all particles
@@ -208,7 +209,7 @@ class FilterParticle(object):
         # d_phi/d_theta = -1
         d_phi_d_theta = -1.0
 
-        return np.array([[d_phi_d_x, d_phi_d_y, d_phi_d_theta],
+        return Matrix([[d_phi_d_x, d_phi_d_y, d_phi_d_theta],
                          [0.0, 0.0, 0.0],
                          [0.0, 0.0, 0.0],
                          [0.0, 0.0, 0.0]])
@@ -238,11 +239,17 @@ class FilterParticle(object):
         return numpy.array(mm(mm(old_covar , transpose(bigH)) , Qinv))
 
     def importance_factor(self, bigQ, blob, pseudoblob):
-        # TODO(buckbaskin):
-        # Comment this
+        '''
+        Calculate the relative importance of this measurement (weight) to be
+        used as part of resampling
+        Input:
+            np.ndarray bigQ (measurement covariance)
+            Blob blob (recieved measurement)
+            Blob pseudoblob (estimated measurement)
+        '''
         v1 = 2*math.pi *magnitude(bigQ)
         v1 = pow(v1, -0.5)
-        delz = blob - pseudoblob
+        delz = blob_to_matrix(blob) - blob_to_matrix(pseudoblob)
         delzt = transpose(delz)
         v2 = math.exp(-0.5 * mm(mm(delzt, inverse(bigQ)), delz))
         return v1 * v2
@@ -250,9 +257,9 @@ class FilterParticle(object):
 class Feature(object):
     def __init__(self, mean=None):
         if mean is None:
-            mean = np.array([0, 0, 0, 0, 0])
+            mean = Matrix([0, 0, 0, 0, 0])
         if covar is None:
-            covar = np.array([[1, 0, 0, 0, 0],
+            covar = Matrix([[1, 0, 0, 0, 0],
                                 [0, 1, 0, 0, 0],
                                 [0, 0, 1, 0, 0],
                                 [0, 0, 0, 1, 0],
@@ -273,7 +280,7 @@ class Feature(object):
         output:
             None
         '''
-        delz = measure - expected_measure
+        delz = blob_to_matrix(measure) - blob_to_matrix(expected_measure)
         adjust = mm(kalman_gain, delz)
         self.mean = mean + adjust
 
