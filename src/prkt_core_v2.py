@@ -248,14 +248,20 @@ class FilterParticle(object):
         return v1 * v2
 
 class Feature(object):
-    def __init__(self):
-        # TODO(buckbaskin):
-        self.mean = np.array([1, 2, 3, 4, 5])
-        self.covar = np.array([[1, 0, 0, 0, 0],
+    def __init__(self, mean=None):
+        if mean is None:
+            mean = np.array([0, 0, 0, 0, 0])
+        if covar is None:
+            covar = np.array([[1, 0, 0, 0, 0],
                                 [0, 1, 0, 0, 0],
                                 [0, 0, 1, 0, 0],
                                 [0, 0, 0, 1, 0],
                                 [0, 0, 0, 0, 1]])
+        self.mean = mean
+        self.covar = covar
 
-    def update_mean(self, feature_id, kalman_gain, measure, expected_measure):
+    def update_mean(self, kalman_gain, measure, expected_measure):
+        pass
+
+    def update_covar(self, kalman_gain, bigH):
         pass
