@@ -16,7 +16,7 @@ import numpy as np
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
-from matrix import inverse, transpose, mm, identity, magnitude
+from matrix import inverse, transpose, mm, identity, magnitude, madd, msubtract
 from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
@@ -259,16 +259,33 @@ class Feature(object):
                                 [0, 0, 0, 0, 1]])
         self.mean = mean
         self.covar = covar
+        self.identity = identity(covar.shape[0])
 
     def update_mean(self, kalman_gain, measure, expected_measure):
-        # TODO(buckbaskin):
-        # comment this
+        '''
+        Update the mean of a known feature based on the calculated Kalman gain
+        and the different between the given measurement and the expected
+        measurement
+        input:
+            np.ndarray kalman_gain
+            np.ndarray measure(ment)
+            np.ndarray expected_measure(ment)
+        output:
+            None
+        '''
         delz = measure - expected_measure
         adjust = mm(kalman_gain, delz)
         self.mean = mean + adjust
 
     def update_covar(self, kalman_gain, bigH):
-        # TODO(buckbaskin):
-        # comment this
-        # TODO(buckbaskin):
-        pass
+        '''
+        Update the covariance of a known feature based on the calculated Kalman
+        gain and the Jacobian of the measurement model (bigH)
+        input:
+            np.ndarray kalman_gain
+            np.ndarray bigH
+        output:
+            None
+        '''
+        adjust = msubtract(self.identity, mm(kalman_gain, bigH))
+        self.covar = mm(adjust, self.covar)
