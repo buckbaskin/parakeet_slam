@@ -93,22 +93,23 @@ class FastSLAM(object):
         # pS      h1        |
         # 0-----------------0
         # |                 h2
+        v = twist.linear.x
+        w = twist.angular.z
+
         new_particle = FilterParticle()
         new_particle.feature_set = deepcopy(particle.feature_set)
 
         dheading = twist.twist.angular.z * dt
 
-        drive_noise = normal(0, .05, 1)
-        #TODO(buckbaskin): add drive noise proportional to v, w
+        drive_noise = normal(0, .05*v+.01*w, 1)
         ds = twist.twist.linear.x * dt + drive_noise
 
         prev_heading = quaternion_to_heading(particle.pose.pose.orientation)
 
-        #TODO(buckbaskin): add heading noise proportional to v, w
-        heading_noise = normal(0, .05, 1)
+        heading_noise = normal(0, .05*w+.01*v, 1)
         heading_1 = prev_heading+dheading/2+heading_noise
 
-        heading_noise = normal(0, .05, 1)
+        heading_noise = normal(0, .05*w+.01*v, 1)
         heading_2 = heading_1+dheading/2+heading_noise
 
         dx = ds*math.cos(heading_1)
