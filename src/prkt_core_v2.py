@@ -40,13 +40,12 @@ class FastSLAM(object):
             correspondence = particle.match_features_to_scan(scan)
             for pair in correspondence:
                 blob = pair[1]
-                if pair[0] < 0:
-                    # new feature observed
+                if pair[0] == 0:
+                    # unseen feature observed
                     particle.add_hypothesis(particle.state, blob)
                     particle.weight *= particle.no_match_weight()
                 else:
-                    # existing feature observed
-                    # generate expected measurement based on feature id
+                    # update feature
                     pseudoblob = particle.generate_measurement(pair[0])
                     bigH = particle.measurement_jacobian(pair[0])
                     bigQ = particle.measurement_covariance(bigH, pair[0], self.Qt)
@@ -57,10 +56,21 @@ class FastSLAM(object):
                         .update_mean(bigK, blob, pseudoblob))
                     (particle.get_feature_by_id(pair[0])
                         .update_covar(bigK, bigH))
-
-                    weighty = particle.importance_factor(bigQ, blob, pseudoblob)
+                    if pair[0] < 0:
+                        # potential new feature seen
+                        # update feature ^ but update as if the feature not seen
+                        weighty = particle.no_match_weight()
+                        # possibly add the feature to the full feature set
+                        if particle.get_feature_by_id(pair[0]).update_count > 5:
+                            # the particle has been seen 3 times
+                            feature = self.potential_features[-pair[0]]
+                            self.feature_set[-pair[0]] = feature
+                            del self.potential_features[-pair[0]]
+                    else:
+                        # feature seen
+                        # update feature and robot pose weight
+                        weighty = particle.importance_factor(bigQ, blob, pseudoblob)
                     particle.weight *= weighty
-
         self.low_variance_resample()
 
 
@@ -75,9 +85,9 @@ class FastSLAM(object):
     def motion_update(self, new_twist):
         '''
         update the state of all of the particles by the given twist
-        input:
+        Input:
             new_twist: twist for the next motion
-        output:
+        Output:
             None
         '''
 
@@ -153,19 +163,24 @@ class FilterParticle(object):
     def __init__(self, state=Odometry()):
         self.state = state
         self.feature_set = {}
+        self.potential_features = {}
+        self.next_id = 1
 
     def get_feature_by_id(self, id_):
         '''
         get the feature by id
         currently, if there is no feature for that id, it raises an error
-        input:
+        Input:
             int (feature)id_
-        output:
+        Output:
             Feature
         raises:
             KeyError
         '''
-        return self.feature_set[id_]
+        if (id_ < 0):
+            return self.potential_features[int(-1*id_)]
+        else:
+            return self.feature_set[id_]
 
     def match_features_to_scan(self, scan):
         '''
@@ -177,31 +192,124 @@ class FilterParticle(object):
             search for features that are likely to be seen
             Might be: run v1, then take the most likely, and search from there
             for features to match
-        input:
+
+        ** Note this can match to potential features as well.
+            If it matches to a potential feature, the feature will update but
+            the weight of the particle will adjust like an unmatched feature
+
+        Input:
             VizScan scan
-        output:
+        Output:
             list of tuples mapping feature ids to Blobs
-            negative numbers = new feature
+            <0 = potential new feature
+            0 = unseen feature
+            >0 = existing full feature
+
         '''
         # TODO(buckbaskin):
         johndoe = []
-        johndoe.append((-1, Blob()))
-        johndoe.append((-2, scan.observes[0]))
+        for blob in scan.observes:
+            johndoe.append((self.match_one(self.state, blob), blob))
         return johndoe
+
+    def match_one(self, state, blob):
+        '''
+        Return the independent best match to the feature set for the given blob
+        Input:
+            Odometry state
+            Blob blob
+        Output:
+            int
+            <0 = potential new feature
+            0 = unseen feature
+            >0 = existing full feature
+        '''
+        #TODO(buckbaskin):
+        return 0
 
     def add_hypothesis(self, state, blob):
         '''
         add a hypothetical new feature to the non-invertable measurement model
         check to see if it matches a hypothetical feature. If that hypothetical
         is strong enough, add it to the particles
-        input:
+        Input:
             Odometry state (position of observation)
             Blob blob (observation)
-        output:
+        Output:
             None
         '''
+        pair = self.find_nearest_reading(state, blob)
+        if (pair > 0):
+            # close enough match to an existing reading
+            self.add_new_feature(pair, state, blob)
+        else:
+            # not a match
+            self.add_orphaned_reading(state, blob)
+
+    def find_nearest_reading(self, state, blob):
+        '''
+        Find the nearest reading in the set of unmatched readings. If it is
+        close enough, return the id of the other reading that is close.
+        Otherwise, return -1*the id of the other reading that is closest.
+        Input:
+            Odometry state
+            Blob blob
+        Output:
+            int
+        '''
         # TODO(buckbaskin):
-        pass
+        return -1
+
+    def create_new_feature(self, old_id, state, blob):
+        '''
+        Adds a new feature based on the intersection of the last two readings.
+        Input:
+            int old_id
+            Odometry state
+            Blob blob
+        Output:
+            None
+        '''
+        new_id = self.next_id
+        old_reading = self.hypothesis_set[old_id]
+        intersection = self.cross_readings(old_reading, (state, blob,))
+        x = intersection[0]
+        y = intersection[1]
+        r = (old_reading[1].color.r + blob.color.r)/2
+        g = (old_reading[1].color.g + blob.color.g)/2
+        b = (old_reading[1].color.b + blob.color.b)/2
+
+        mean = Matrix([x, y, r, g, b])
+        # TODO(buckbaskin): calculate this covariance
+        covar = Matrix([[1,0,0,0,0],
+                        [0,1,0,0,0],
+                        [0,0,1,0,0],
+                        [0,0,0,1,0],
+                        [0,0,0,0,1]])
+        self.potential_features[self.new_id] = Feature(mean=mean, covar=covar)
+        self.new_id += 1
+
+    def cross_readings(self, old_reading, new_reading):
+        '''
+        Find the intersection of the two vectors defined by the position and
+        direction of the two readings.
+        Returns a tuple of the x, y pair where the two vectors intersect
+        Input:
+            (Odometry, Blob,) old_reading
+            (Odometry, Blob,) new_reading
+        Output:
+            (float, float)
+        '''
+        # TODO(buckbaskin):
+        return (0.0, 0.0,)
+
+    def add_orphaned_reading(self, state, blob):
+        '''
+        Add a new reading to the set of orphaned readings that are looking for a
+        matching new reading that is close enough to become a potential feature
+        '''
+        self.hypothesis_set[self.next_id] = ((state, blob,))
+        self.next_id += 1
 
     def measurement_jacobian(self, feature_id):
         '''
@@ -212,9 +320,9 @@ class FilterParticle(object):
         estimate of the robot's position at the time of the update (computed at 
         the mean of the feature, aka the predicted mean) PR p. 207
 
-        input:
+        Input:
             int feature_id
-        output:
+        Output:
             np.ndarray 4x3 (bigH)
         '''
         '''
@@ -256,11 +364,11 @@ class FilterParticle(object):
         '''
         Calculate the covarance of the measurement with respect to the given
         Jacobian bigH, the feature's covariance and Qt (measurement noise?)
-        input:
+        Input:
             np.ndarray bigH (Jacobian of the measurement model)
             int feature_id
             np.ndarray Qt (measurement noise)
-        output:
+        Output:
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
@@ -270,11 +378,11 @@ class FilterParticle(object):
         '''
         Calculate the kalman gain for the update of the feature based on the
         existing covariance of the feature, bigH, and the inverse of bigQ
-        input:
+        Input:
             int feature_id
             np.ndarray bigH (Jacobian of the measurement model)
             np.ndarray Qinv (inverse of Q, the measurement covariance)
-        output:
+        Output:
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
@@ -297,7 +405,7 @@ class FilterParticle(object):
         return v1 * v2
 
 class Feature(object):
-    def __init__(self, mean=None):
+    def __init__(self, mean=None, covar=None):
         if mean is None:
             mean = Matrix([0, 0, 0, 0, 0])
         if covar is None:
@@ -309,32 +417,35 @@ class Feature(object):
         self.mean = mean
         self.covar = covar
         self.identity = identity(covar.shape[0])
+        self.update_count = 0
 
     def update_mean(self, kalman_gain, measure, expected_measure):
         '''
         Update the mean of a known feature based on the calculated Kalman gain
         and the different between the given measurement and the expected
         measurement
-        input:
+        Input:
             np.ndarray kalman_gain
             np.ndarray measure(ment)
             np.ndarray expected_measure(ment)
-        output:
+        Output:
             None
         '''
         delz = blob_to_matrix(measure) - blob_to_matrix(expected_measure)
         adjust = mm(kalman_gain, delz)
         self.mean = mean + adjust
+        self.update_count += 1
 
     def update_covar(self, kalman_gain, bigH):
         '''
         Update the covariance of a known feature based on the calculated Kalman
         gain and the Jacobian of the measurement model (bigH)
-        input:
+        Input:
             np.ndarray kalman_gain
             np.ndarray bigH
-        output:
+        Output:
             None
         '''
         adjust = msubtract(self.identity, mm(kalman_gain, bigH))
         self.covar = mm(adjust, self.covar)
+        self.update_count += 1
