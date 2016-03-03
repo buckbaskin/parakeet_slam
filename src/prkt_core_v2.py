@@ -13,7 +13,6 @@ node.
 import rospy
 import math
 import numpy as np
-import scipy.stats as stats
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
@@ -22,6 +21,7 @@ from matrix import blob_to_matrix
 from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
+from scipy.stats import multivariate_normal
 from utils import version, heading_to_quaternion, quaternion_to_heading
 from viz_feature_sim.msg import VizScan, Blob
 
@@ -291,17 +291,18 @@ class FilterParticle(object):
         f_r = f_mean[2]
         f_g = f_mean[3]
         f_b = f_mean[4]
+        color_mean = Matrix([f_r, f_g, f_b])
 
         b_r = blob.color.r
         b_g = blob.color.g
         b_b = blob.color.b
+        blob_mean = Matrix([b_r, b_g, b_b])
 
         color_covar = f_covar[2:,2:]
 
-        # TODO(buckbaskin): 
         # use multivariate pdf to calculate the probability of a color match
-
-        return 0.1
+        return multivariate_normal.pdf(blob_mean, 
+            mean=color_mean, cov=color_covar)
 
     def add_hypothesis(self, state, blob):
         '''
