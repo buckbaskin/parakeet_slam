@@ -13,6 +13,7 @@ node.
 import rospy
 import math
 import numpy as np
+import scipy.stats as stats
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
@@ -240,6 +241,66 @@ class FilterParticle(object):
         return max_match_id
 
     def probability_of_match(self, state, blob, feature):
+        f_mean = feature.mean # [x, y, r, b, g]
+        f_covar = feature.covar
+
+        f_x = f_mean[0]
+        f_y = f_mean[1]
+
+        s_x = state.pose.pose.position.x
+        s_y = state.pose.pose.position.y
+        s_heading = quaternion_to_heading(state.pose.pose.orientation)
+
+        expected_bearing = math.atan2(f_y-s_t, f_x-s_x) - s_heading
+        observed_bearing = blob.bearing
+
+        del_bearing = observed_bearing - expected_bearing
+
+        color_distance = (math.pow(blob.color.r - f_mean[2], 2) + 
+                            math.pow(blob.color.g - f_mean[3], 2) + 
+                            math.pow(blob.color.b - f_mean[4], 2))
+
+        if abs(del_bearing) > 0.5:
+            return 0.0
+        else:
+            bearing_prob = self.prob_position_match(f_x, f_y, )
+
+        if abs(color_distance) > 300:
+            return 0.0
+        else:
+            color_prob = self.prob_color_match(f_mean, f_covar, blob):
+
+        return bearing_prob*color_prob
+
+    def prob_position_match(self, f_x, f_y, s_x, s_y, obs_bearing):
+        # TODO(bucbkasin):
+        # comment this
+
+        # TODO(buckbaskin):
+        # find closest point to feature on the line from state, bearing
+        
+        # TODO(buckbaskin):
+        # then use multivariate distribution pdf to find the probability of the
+        #   closest point being inside that distribution
+        return 0.1
+
+    def prob_color_match(f_mean, f_covar, blob):
+        # TODO(buckbaskin):
+        # comment this
+        # TODO(buckbaskin):
+        f_r = f_mean[2]
+        f_g = f_mean[3]
+        f_b = f_mean[4]
+
+        b_r = blob.color.r
+        b_g = blob.color.g
+        b_b = blob.color.b
+
+        color_covar = f_covar[2:,2:]
+
+        # TODO(buckbaskin): 
+        # use multivariate pdf to calculate the probability of a color match
+
         return 0.1
 
     def add_hypothesis(self, state, blob):
