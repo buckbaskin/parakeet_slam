@@ -241,6 +241,9 @@ class FilterParticle(object):
         return max_match_id
 
     def probability_of_match(self, state, blob, feature):
+        # TODO(bucbkasin):
+        # comment this
+
         f_mean = feature.mean # [x, y, r, b, g]
         f_covar = feature.covar
 
@@ -272,21 +275,35 @@ class FilterParticle(object):
 
         return bearing_prob*color_prob
 
-    def prob_position_match(self, f_x, f_y, s_x, s_y, obs_bearing):
+    def prob_position_match(self, f_mean, f_covar, s_x, s_y, bearing):
+        # TODO(bucbkasin):
+        # comment this
+        
+        # find closest point to feature on the line from state, bearing
+        near_x, near_y = self.closest_point(self, f_x, f_y, s_x, s_y, bearing)
+        
+        # then use multivariate distribution pdf to find the probability of the
+        #   closest point being inside that distribution
+        feature_mean = f_mean[0:2]
+        feature_covar = f_covar[0:2, 0:2]
+
+        obs_mean = Matrix([near_x, near_y])
+        return multivariate_normal.pdf(obs_mean, mean=feature_mean,
+            cov=feature_covar) /
+            multivariate_normal.pdf(feature_mean, mean=feature_mean,
+            cov=feature_covar)
+
+    def closest_point(self, f_x, f_y, s_x, s_y, obs_bearing):
         # TODO(bucbkasin):
         # comment this
 
         # TODO(buckbaskin):
-        # find closest point to feature on the line from state, bearing
-        
-        # TODO(buckbaskin):
-        # then use multivariate distribution pdf to find the probability of the
-        #   closest point being inside that distribution
-        return 0.1
+        return (0.0, 0.0)
 
     def prob_color_match(f_mean, f_covar, blob):
-        # TODO(buckbaskin):
+        # TODO(bucbkasin):
         # comment this
+
         # TODO(buckbaskin):
         f_r = f_mean[2]
         f_g = f_mean[3]
