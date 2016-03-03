@@ -63,9 +63,9 @@ class FastSLAM(object):
                         # possibly add the feature to the full feature set
                         if particle.get_feature_by_id(pair[0]).update_count > 5:
                             # the particle has been seen 3 times
-                            feature = self.potential_features[-pair[0]]
+                            feature = self.potential_features[pair[0]]
                             self.feature_set[-pair[0]] = feature
-                            del self.potential_features[-pair[0]]
+                            del self.potential_features[pair[0]]
                     else:
                         # feature seen
                         # update feature and robot pose weight
@@ -178,7 +178,7 @@ class FilterParticle(object):
             KeyError
         '''
         if (id_ < 0):
-            return self.potential_features[int(-1*id_)]
+            return self.potential_features[int(id_)]
         else:
             return self.feature_set[id_]
 
@@ -206,7 +206,7 @@ class FilterParticle(object):
             >0 = existing full feature
 
         '''
-        # TODO(buckbaskin):
+        # Version 1
         johndoe = []
         for blob in scan.observes:
             johndoe.append((self.match_one(self.state, blob), blob))
@@ -224,8 +224,23 @@ class FilterParticle(object):
             0 = unseen feature
             >0 = existing full feature
         '''
-        #TODO(buckbaskin):
-        return 0
+        # create a list of existing features as (id, feature) pairs
+        features = list(self.feature_set.items())
+        features.extend(list(self.potential_features.items()))
+
+        max_match = 0.0
+        max_match_id = 0
+
+        for id_, feature in features:
+            new_match = self.probability_of_match(state, blob, feature)
+            if (new_match > max_match):
+                max_match = new_match
+                max_match_id = id_
+
+        return max_match_id
+
+    def probability_of_match(self, state, blob, feature):
+        return 0.1
 
     def add_hypothesis(self, state, blob):
         '''
@@ -286,7 +301,7 @@ class FilterParticle(object):
                         [0,0,1,0,0],
                         [0,0,0,1,0],
                         [0,0,0,0,1]])
-        self.potential_features[self.new_id] = Feature(mean=mean, covar=covar)
+        self.potential_features[-self.new_id] = Feature(mean=mean, covar=covar)
         self.new_id += 1
 
     def cross_readings(self, old_reading, new_reading):
