@@ -302,7 +302,9 @@ class FilterParticle(object):
 
         # use multivariate pdf to calculate the probability of a color match
         return multivariate_normal.pdf(blob_mean, 
-            mean=color_mean, cov=color_covar)
+            mean=color_mean, cov=color_covar) / 
+            multivariate_normal.pdf(color_mean, mean=color_mean,
+            cov=color_covar)
 
     def add_hypothesis(self, state, blob):
         '''
