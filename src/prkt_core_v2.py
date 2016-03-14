@@ -23,7 +23,8 @@ from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
 from scipy.stats import multivariate_normal
-from utils import version, heading_to_quaternion, quaternion_to_heading
+from utils import version, heading_to_quaternion, quaternion_to_heading, scale
+from utils import dot_product, unit
 from viz_feature_sim.msg import VizScan, Blob
 
 class FastSLAM(object):
@@ -166,6 +167,8 @@ class FilterParticle(object):
         self.state = state
         self.feature_set = {}
         self.potential_features = {}
+
+        self.hypothesis_set = {}
         self.next_id = 1
 
     def get_feature_by_id(self, id_):
@@ -255,7 +258,7 @@ class FilterParticle(object):
         s_y = state.pose.pose.position.y
         s_heading = quaternion_to_heading(state.pose.pose.orientation)
 
-        expected_bearing = math.atan2(f_y-s_t, f_x-s_x) - s_heading
+        expected_bearing = math.atan2(f_y-s_y, f_x-s_x) - s_heading
         observed_bearing = blob.bearing
 
         del_bearing = observed_bearing - expected_bearing
@@ -267,7 +270,7 @@ class FilterParticle(object):
         if abs(del_bearing) > 0.5:
             return 0.0
         else:
-            bearing_prob = self.prob_position_match(f_x, f_y, )
+            bearing_prob = self.prob_position_match(f_x, f_y, s_x, s_y, observed_bearing)
 
         if abs(color_distance) > 300:
             return 0.0
@@ -279,9 +282,11 @@ class FilterParticle(object):
     def prob_position_match(self, f_mean, f_covar, s_x, s_y, bearing):
         # TODO(bucbkasin):
         # comment this
-        
+        f_x = f_mean[0]
+        f_y = f_mean[1]
+
         # find closest point to feature on the line from state, bearing
-        near_x, near_y = self.closest_point(self, f_x, f_y, s_x, s_y, bearing)
+        near_x, near_y = self.closest_point(f_x, f_y, s_x, s_y, bearing)
         
         # then use multivariate distribution pdf to find the probability of the
         #   closest point being inside that distribution
@@ -318,7 +323,7 @@ class FilterParticle(object):
 
         return (s_x + scaled_x, s_y + scaled_y)
 
-    def prob_color_match(f_mean, f_covar, blob):
+    def prob_color_match(self, f_mean, f_covar, blob):
         # TODO(bucbkasin):
         # comment this
 
@@ -528,8 +533,12 @@ class FilterParticle(object):
         '''
         Generate an expected measurement for the given featureid
         '''
-        #TODO(buckbaskin):
+        #TODO(buckbaskin): see usage
         return Blob()
+
+    def add_new_feature(self, pair, state, blob):
+        # TODO(bucbaskin): see usage
+        pass
 
     # end FilterParticle
 
