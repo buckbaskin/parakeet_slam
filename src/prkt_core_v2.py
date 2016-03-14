@@ -37,7 +37,6 @@ class FastSLAM(object):
         self.last_update = rospy.Time.now()
         self.particles = [FilterParticle(), FilterParticle()]
         self.Qt = Matrix([[1, 0], [0, 1]]) # measurement noise?
-        self.weight = 1
 
     def cam_cb(self, scan):
         # motion update all particles
@@ -176,6 +175,8 @@ class FilterParticle(object):
         self.state = state
         self.feature_set = {}
         self.potential_features = {}
+        self.weight = 1
+
 
         self.hypothesis_set = {}
         self.next_id = 1
@@ -444,20 +445,20 @@ class FilterParticle(object):
         current particle state and the give feature's mean
 
         bigH is the Jacobian of the measurement model with respect to the best
-        estimate of the robot's position at the time of the update (computed at 
+        estimate of the robot's position at the time of the update (computed at
         the mean of the feature, aka the predicted mean) PR p. 207
 
         Input:
             int feature_id
         Output:
             np.ndarray 4x3 (bigH)
-        
+
         ...
 
         State = { x, y, heading } = [x , y, heading (theta)]
         measurements = { bearing, r, g, b} = [bearing (phi), r, g, b]
 
-        Jacobian = 
+        Jacobian =
         [[d phi/d x, d phi/d y, d phi/d theta],
          [d r/d x,   d r/d y,   d r/d theta  ],
          [d g/d x,   d g/d y,   d g/d theta  ],
@@ -469,14 +470,14 @@ class FilterParticle(object):
         feature_mean = self.get_feature_by_id(feature_id).mean
         feature_x = feature_mean.x
         feature_y = feature_mean.y
-        
+
         # phi = atan2(dy, dx) - heading
         # q = (feature_x - mean_x)^2 + (feature_y - mean_y)^2
         q = pow(feature_x - mean_x, 2) + pow(feature_y - mean_y, 2)
 
         # d_phi/d_x = (feature_y - mean_y) / q
         d_phi_d_x = (feature_y - mean_y) / q
-        
+
         # d_phi/d_y = (feature_x - mean_x) / q
         d_phi_d_y = (feature_x - mean_x) / q
 
@@ -500,7 +501,7 @@ class FilterParticle(object):
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
-        return Matrix(madd(mm(mm(bigH , old_covar) , transpose(bigH)) , Qt))
+        return Matrix(madd(mm(mm(bigH, old_covar), transpose(bigH)), Qt))
 
     def kalman_gain(self, feature_id, bigH, Qinv):
         '''
@@ -514,7 +515,7 @@ class FilterParticle(object):
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
-        return Matrix(mm(mm(old_covar , transpose(bigH)) , Qinv))
+        return Matrix(mm(mm(old_covar, transpose(bigH)), Qinv))
 
     def importance_factor(self, bigQ, blob, pseudoblob):
         '''
