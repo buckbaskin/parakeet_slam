@@ -8,11 +8,12 @@ node.
 '''
 
 # pylint: disable=invalid-name
+# pylint: disable=fixme
 # pylint: disable=no-self-use
 
 import rospy
 import math
-import numpy as np
+# import numpy as np
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
@@ -23,7 +24,7 @@ from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
 # from scipy.stats import multivariate_normal
-from utils import version, heading_to_quaternion, quaternion_to_heading, scale
+from utils import heading_to_quaternion, quaternion_to_heading, scale
 from utils import dot_product, unit
 from viz_feature_sim.msg import VizScan, Blob
 
@@ -36,6 +37,7 @@ class FastSLAM(object):
         self.last_update = rospy.Time.now()
         self.particles = [FilterParticle(), FilterParticle()]
         self.Qt = Matrix([[1, 0], [0, 1]]) # measurement noise?
+        self.weight = 1
 
     def cam_cb(self, scan):
         # motion update all particles
@@ -54,6 +56,7 @@ class FastSLAM(object):
                     # update feature
                     pseudoblob = particle.generate_measurement(pair[0])
                     bigH = particle.measurement_jacobian(pair[0])
+                    # pylint: disable=line-too-long
                     bigQ = particle.measurement_covariance(bigH, pair[0], self.Qt)
                     bigQinv = inverse(bigQ)
                     bigK = particle.kalman_gain(pair[0], bigH, bigQinv)
@@ -75,6 +78,7 @@ class FastSLAM(object):
                     else:
                         # feature seen
                         # update feature and robot pose weight
+                        # pylint: disable=line-too-long
                         weighty = particle.importance_factor(bigQ, blob, pseudoblob)
                     particle.weight *= weighty
         self.low_variance_resample()
@@ -97,10 +101,10 @@ class FastSLAM(object):
             None
         '''
 
-        twist = self.last_control
         dt = rospy.Time.now() - self.last_update
         for i in range(0, len(self.particles)):
-            self.particles[i] = self.motion_model(self.particles[i], self.last_control, dt)
+            self.particles[i] = self.motion_model(self.particles[i],
+                self.last_control, dt)
 
         self.last_update = self.last_update + dt
         self.last_control = new_twist
@@ -133,6 +137,7 @@ class FastSLAM(object):
 
         new_particle.state.pose.pose.position.x += dx
         new_particle.state.pose.pose.position.y += dy
+        # pylint: disable=line-too-long
         new_particle.state.pose.pose.orientation = heading_to_quaternion(heading_2)
 
         return new_particle
@@ -141,6 +146,7 @@ class FastSLAM(object):
         '''
         Resample particles based on weights
         '''
+        # pylint: disable=line-too-long
         sum_ = reduce(lambda accum, element: accum+element.weight, self.particles, 0.0)
         range_ = sum_/float(len(self.particles))
         step = random()*range_
@@ -154,9 +160,9 @@ class FastSLAM(object):
             while step <= 0.0 and count < len(self.particles):
                 # add it to the list
                 temp_particles.append(deepcopy(particle))
-                # do I need the deepcopy? 
+                # do I need the deepcopy?
                 #   If the motion model creates a new particle, no
-                
+
                 # take a step forward
                 step += range_
                 count += 1
@@ -185,7 +191,7 @@ class FilterParticle(object):
         raises:
             KeyError
         '''
-        if (id_ < 0):
+        if id_ < 0:
             return self.potential_features[int(id_)]
         else:
             return self.feature_set[id_]
@@ -193,7 +199,7 @@ class FilterParticle(object):
     def match_features_to_scan(self, scan):
         '''
         Version 1: independently match each scan to the most likely feature
-        Version 2: match each scan to a unique feature 
+        Version 2: match each scan to a unique feature
             (if they are sufficiently far apart)
         Version 3: graph based enhanced lookup
             Use a graph of features that have been seen together to speed up the
@@ -241,7 +247,7 @@ class FilterParticle(object):
 
         for id_, feature in features:
             new_match = self.probability_of_match(state, blob, feature)
-            if (new_match > max_match):
+            if new_match > max_match:
                 max_match = new_match
                 max_match_id = id_
 
@@ -444,8 +450,9 @@ class FilterParticle(object):
             int feature_id
         Output:
             np.ndarray 4x3 (bigH)
-        '''
-        '''
+        
+        ...
+
         State = { x, y, heading } = [x , y, heading (theta)]
         measurements = { bearing, r, g, b} = [bearing (phi), r, g, b]
 
