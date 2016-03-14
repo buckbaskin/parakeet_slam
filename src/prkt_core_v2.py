@@ -18,7 +18,7 @@ from copy import deepcopy
 from geometry_msgs.msg import Twist
 from math import sin, cos
 from matrix import inverse, transpose, mm, identity, magnitude, madd, msubtract
-from matrix import blob_to_matrix
+from matrix import blob_to_matrix, Matrix
 from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
@@ -65,9 +65,9 @@ class FastSLAM(object):
                         # possibly add the feature to the full feature set
                         if particle.get_feature_by_id(pair[0]).update_count > 5:
                             # the particle has been seen 3 times
-                            feature = self.potential_features[pair[0]]
-                            self.feature_set[-pair[0]] = feature
-                            del self.potential_features[pair[0]]
+                            feature = particle.potential_features[pair[0]]
+                            particle.feature_set[-pair[0]] = feature
+                            del particle.potential_features[pair[0]]
                     else:
                         # feature seen
                         # update feature and robot pose weight
@@ -96,7 +96,7 @@ class FastSLAM(object):
         twist = self.last_control
         dt = rospy.Time.now() - self.last_update
         for i in range(0, len(self.particles)):
-            self.particles[i] = motion_model(self.particles[i], self.last_control, dt)
+            self.particles[i] = self.motion_model(self.particles[i], self.last_control, dt)
 
         self.last_update = self.last_update + dt
         self.last_control = new_twist
@@ -398,8 +398,8 @@ class FilterParticle(object):
                         [0,0,1,0,0],
                         [0,0,0,1,0],
                         [0,0,0,0,1]])
-        self.potential_features[-self.new_id] = Feature(mean=mean, covar=covar)
-        self.new_id += 1
+        self.potential_features[-new_id] = Feature(mean=mean, covar=covar)
+        self.next_id += 1
 
     def cross_readings(self, old_reading, new_reading):
         '''
@@ -516,6 +516,23 @@ class FilterParticle(object):
         v2 = math.exp(-0.5 * mm(mm(delzt, inverse(bigQ)), delz))
         return v1 * v2
 
+    def no_match_weight(self):
+        '''
+        return the default weight for when a particle doesn't match an
+        observation to an existing feature
+        '''
+        #TODO(buckbaskin):
+        return 0.1
+
+    def generate_measurement(self, featureid):
+        '''
+        Generate an expected measurement for the given featureid
+        '''
+        #TODO(buckbaskin):
+        return Blob()
+
+    # end FilterParticle
+
 class Feature(object):
     def __init__(self, mean=None, covar=None):
         if mean is None:
@@ -545,7 +562,7 @@ class Feature(object):
         '''
         delz = blob_to_matrix(measure) - blob_to_matrix(expected_measure)
         adjust = mm(kalman_gain, delz)
-        self.mean = mean + adjust
+        self.mean = self.mean + adjust
         self.update_count += 1
 
     def update_covar(self, kalman_gain, bigH):
