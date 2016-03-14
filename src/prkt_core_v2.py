@@ -272,13 +272,14 @@ class FilterParticle(object):
 
         del_bearing = observed_bearing - expected_bearing
 
-        color_distance = (math.pow(blob.color.r - f_mean[2], 2) + 
-                            math.pow(blob.color.g - f_mean[3], 2) + 
+        color_distance = (math.pow(blob.color.r - f_mean[2], 2) +
+                            math.pow(blob.color.g - f_mean[3], 2) +
                             math.pow(blob.color.b - f_mean[4], 2))
 
         if abs(del_bearing) > 0.5:
             return 0.0
         else:
+            # pylint: disable=line-too-long
             bearing_prob = self.prob_position_match(f_x, f_y, s_x, s_y, observed_bearing)
 
         if abs(color_distance) > 300:
@@ -296,7 +297,7 @@ class FilterParticle(object):
 
         # find closest point to feature on the line from state, bearing
         near_x, near_y = self.closest_point(f_x, f_y, s_x, s_y, bearing)
-        
+
         # then use multivariate distribution pdf to find the probability of the
         #   closest point being inside that distribution
         feature_mean = f_mean[0:2]
@@ -347,10 +348,10 @@ class FilterParticle(object):
         b_b = blob.color.b
         blob_mean = Matrix([b_r, b_g, b_b])
 
-        color_covar = f_covar[2:,2:]
+        color_covar = f_covar[2:, 2:]
 
         # use multivariate pdf to calculate the probability of a color match
-        return multivariate_normal.pdf(blob_mean, 
+        return multivariate_normal.pdf(blob_mean,
             mean=color_mean, cov=color_covar)
 
     def add_hypothesis(self, state, blob):
@@ -365,7 +366,7 @@ class FilterParticle(object):
             None
         '''
         pair = self.find_nearest_reading(state, blob)
-        if (pair > 0):
+        if pair > 0:
             # close enough match to an existing reading
             self.add_new_feature(pair, state, blob)
         else:
@@ -407,11 +408,11 @@ class FilterParticle(object):
 
         mean = Matrix([x, y, r, g, b])
         # TODO(buckbaskin): calculate this covariance
-        covar = Matrix([[1,0,0,0,0],
-                        [0,1,0,0,0],
-                        [0,0,1,0,0],
-                        [0,0,0,1,0],
-                        [0,0,0,0,1]])
+        covar = Matrix([[1, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0],
+                        [0, 0, 1, 0, 0],
+                        [0, 0, 0, 1, 0],
+                        [0, 0, 0, 0, 1]])
         self.potential_features[-new_id] = Feature(mean=mean, covar=covar)
         self.next_id += 1
 
