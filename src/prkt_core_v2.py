@@ -16,6 +16,7 @@ import numpy as np
 
 from copy import deepcopy
 from geometry_msgs.msg import Twist
+from math import sin, cos
 from matrix import inverse, transpose, mm, identity, magnitude, madd, msubtract
 from matrix import blob_to_matrix
 from nav_msgs.msg import Odometry
@@ -123,8 +124,8 @@ class FastSLAM(object):
         heading_noise = normal(0, .05*w+.01*v, 1)
         heading_2 = heading_1+dheading/2+heading_noise
 
-        dx = ds*math.cos(heading_1)
-        dy = ds*math.cos(heading_1)
+        dx = ds*cos(heading_1)
+        dy = ds*cos(heading_1)
 
         new_particle.state.pose.pose.position.x += dx
         new_particle.state.pose.pose.position.y += dy
@@ -289,16 +290,33 @@ class FilterParticle(object):
 
         obs_mean = Matrix([near_x, near_y])
         return multivariate_normal.pdf(obs_mean, mean=feature_mean,
-            cov=feature_covar) /
-            multivariate_normal.pdf(feature_mean, mean=feature_mean,
             cov=feature_covar)
 
     def closest_point(self, f_x, f_y, s_x, s_y, obs_bearing):
+        '''
+        Calculate the closest point on the line to the feature
+        The feature is the point (probably not on the line)
+        The line is defined by a point (state x and y) and direction (heading)
+        Input:
+            f_x float (feature's x coordinate)
+            f_y float (feature's y coordinate)
+            s_x float (robot state's x)
+            s_y float (robot state's y)
+            obs_bearing float (robot state's heading)
+        '''
         # TODO(bucbkasin):
-        # comment this
 
-        # TODO(buckbaskin):
-        return (0.0, 0.0)
+        origin_to_feature = (f_x - s_x, f_y - s_y, 0.0,)
+        line_parallel = unit((cos(obs_bearing), sin(obs_bearing), 0.0))
+
+        # origin_to_feature dot line_parallel = magnitude of otf along line
+        magmag = dot_product(origin_to_feature, line_parallel)\
+        scaled_line = scale(line_parallels, magmag)
+
+        scaled_x = scaled_line[0]
+        scaled_y = scaled_line[1]
+
+        return (s_x + scaled_x, s_y + scaled_y)
 
     def prob_color_match(f_mean, f_covar, blob):
         # TODO(bucbkasin):
@@ -319,9 +337,7 @@ class FilterParticle(object):
 
         # use multivariate pdf to calculate the probability of a color match
         return multivariate_normal.pdf(blob_mean, 
-            mean=color_mean, cov=color_covar) / 
-            multivariate_normal.pdf(color_mean, mean=color_mean,
-            cov=color_covar)
+            mean=color_mean, cov=color_covar)
 
     def add_hypothesis(self, state, blob):
         '''
