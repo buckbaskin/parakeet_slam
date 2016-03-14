@@ -272,7 +272,7 @@ class FilterParticle(object):
         if abs(color_distance) > 300:
             return 0.0
         else:
-            color_prob = self.prob_color_match(f_mean, f_covar, blob):
+            color_prob = self.prob_color_match(f_mean, f_covar, blob)
 
         return bearing_prob*color_prob
 
@@ -310,8 +310,8 @@ class FilterParticle(object):
         line_parallel = unit((cos(obs_bearing), sin(obs_bearing), 0.0))
 
         # origin_to_feature dot line_parallel = magnitude of otf along line
-        magmag = dot_product(origin_to_feature, line_parallel)\
-        scaled_line = scale(line_parallels, magmag)
+        magmag = dot_product(origin_to_feature, line_parallel)
+        scaled_line = scale(line_parallel, magmag)
 
         scaled_x = scaled_line[0]
         scaled_y = scaled_line[1]
