@@ -22,10 +22,13 @@ from matrix import blob_to_matrix, Matrix
 from nav_msgs.msg import Odometry
 from numpy.random import normal
 from random import random
-from scipy.stats import multivariate_normal
+# from scipy.stats import multivariate_normal
 from utils import version, heading_to_quaternion, quaternion_to_heading, scale
 from utils import dot_product, unit
 from viz_feature_sim.msg import VizScan, Blob
+
+# pylint: disable=no-name-in-module
+from scipy.stats import multivariate_normal
 
 class FastSLAM(object):
     def __init__(self):
@@ -489,7 +492,7 @@ class FilterParticle(object):
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
-        return numpy.array(madd(mm(mm(bigH , old_covar) , transpose(bigH)) , Qt))
+        return Matrix(madd(mm(mm(bigH , old_covar) , transpose(bigH)) , Qt))
 
     def kalman_gain(self, feature_id, bigH, Qinv):
         '''
@@ -503,7 +506,7 @@ class FilterParticle(object):
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
-        return numpy.array(mm(mm(old_covar , transpose(bigH)) , Qinv))
+        return Matrix(mm(mm(old_covar , transpose(bigH)) , Qinv))
 
     def importance_factor(self, bigQ, blob, pseudoblob):
         '''
