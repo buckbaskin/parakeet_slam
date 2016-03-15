@@ -255,8 +255,17 @@ class FilterParticle(object):
         return max_match_id
 
     def probability_of_match(self, state, blob, feature):
-        # TODO(buckbaskin):
-        # comment this
+        '''
+        Calculate the probability that a state and a blob observation match a
+        given feature
+
+        Input:
+            Odometry state
+            Blob blob
+            Feature feature
+        Output:
+            float (probability)
+        '''
 
         f_mean = feature.mean # [x, y, r, b, g]
         f_covar = feature.covar
@@ -291,7 +300,7 @@ class FilterParticle(object):
         return bearing_prob*color_prob
 
     def prob_position_match(self, f_mean, f_covar, s_x, s_y, bearing):
-        # TODO(bucbkasin):
+        # TODO(buckbaskin):
         # comment this
         f_x = f_mean[0]
         f_y = f_mean[1]
@@ -365,10 +374,10 @@ class FilterParticle(object):
         Output:
             None
         '''
-        pair = self.find_nearest_reading(state, blob)
-        if pair > 0:
+        pair_id = self.find_nearest_reading(state, blob)
+        if pair_id > 0:
             # close enough match to an existing reading
-            self.add_new_feature(pair, state, blob)
+            self.add_new_feature(pair_id, state, blob)
         else:
             # not a match
             self.add_orphaned_reading(state, blob)
@@ -387,7 +396,7 @@ class FilterParticle(object):
         # TODO(buckbaskin):
         return -1
 
-    def create_new_feature(self, old_id, state, blob):
+    def add_new_feature(self, old_id, state, blob):
         '''
         Adds a new feature based on the intersection of the last two readings.
         Input:
@@ -574,19 +583,28 @@ class FilterParticle(object):
         return the default weight for when a particle doesn't match an
         observation to an existing feature
         '''
-        #TODO(buckbaskin):
+        #TODO(buckbaskin): choose/tune the right arbitrary weight
         return 0.1
 
     def generate_measurement(self, featureid):
         '''
         Generate an expected measurement for the given featureid
         '''
-        #TODO(buckbaskin): see usage
-        return Blob()
+        state = self.state
+        s_x = state.pose.pose.position.x
+        s_y = state.pose.pose.position.y
+        feature = get_feature_by_id(featureid)
+        f_x = feature.mean[0]
+        f_y = feature.mean[1]
 
-    def add_new_feature(self, pair, state, blob):
-        # TODO(bucbaskin): see usage
-        pass
+        bobby = Blob()
+        bobby.bearing = math.atan2(f_y-s_y, f_x-s_x)
+        bobby.size = 1/math.sqrt(math.pow(f_x-s_x, 2)+math.pow(f_y-s_y, 2))
+        bobby.color.r = feature.mean[2]
+        bobby.color.g = feature.mean[3]
+        bobby.color.b = feature.mean[4]
+
+        return bobby
 
     # end FilterParticle
 
