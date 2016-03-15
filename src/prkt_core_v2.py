@@ -255,7 +255,7 @@ class FilterParticle(object):
         return max_match_id
 
     def probability_of_match(self, state, blob, feature):
-        # TODO(bucbkasin):
+        # TODO(buckbaskin):
         # comment this
 
         f_mean = feature.mean # [x, y, r, b, g]
@@ -320,8 +320,6 @@ class FilterParticle(object):
             s_y float (robot state's y)
             obs_bearing float (robot state's heading)
         '''
-        # TODO(bucbkasin):
-
         origin_to_feature = (f_x - s_x, f_y - s_y, 0.0,)
         line_parallel = unit((cos(obs_bearing), sin(obs_bearing), 0.0))
 
@@ -335,10 +333,11 @@ class FilterParticle(object):
         return (s_x + scaled_x, s_y + scaled_y)
 
     def prob_color_match(self, f_mean, f_covar, blob):
-        # TODO(bucbkasin):
-        # comment this
+        '''
+        Calculate the likelihood of the observed color being within the
+        distribution defined by the color mean and covariance from the feature
+        '''
 
-        # TODO(buckbaskin):
         f_r = f_mean[2]
         f_g = f_mean[3]
         f_b = f_mean[4]
@@ -422,14 +421,51 @@ class FilterParticle(object):
         Find the intersection of the two vectors defined by the position and
         direction of the two readings.
         Returns a tuple of the x, y pair where the two vectors intersect
+
+        See https://en.wikipedia.org/wiki/Line-line_intersection#Intersection_of_two_lines
+
         Input:
             (Odometry, Blob,) old_reading
             (Odometry, Blob,) new_reading
         Output:
             (float, float)
         '''
-        # TODO(buckbaskin):
-        return (0.0, 0.0,)
+        
+        x1 = old_reading[0].pose.pose.position.x
+        y1 = old_reading[0].pose.pose.position.y
+        h1 = quaternion_to_heading(old_reading[0].pose.pose.orientation)
+        x2 = x1+cos(h1)
+        y2 = y1+sin(h1)
+
+        x3 = new_reading[0].pose.pose.position.x
+        y3 = new_reading[0].pose.pose.position.y
+        h3 = quaternion_to_heading(new_reading[0].pose.pose.orientation)
+        x4 = x3+cos(h3)
+        y4 = y3+sin(h3)
+
+        ### temps
+
+        t0  = x1*y2-y1*x2
+        t1  = x3-x4
+        t2  = x1-x2
+        t3  = x3*y4-x4*y3
+        t4  = t2
+        t5  = y3-y4
+        t6  = y1-y2
+        t7  = t1
+
+        t8  = t0
+        t9  = t5
+        t10 = t6
+        t11 = t3
+        t12 = t4
+        t13 = t5
+        t14 = t6
+        t15 = t7
+
+        ### end temps
+
+        return ((t0*t1-t2*t3)/(t4*t5-t6*t7), (t8*t9-t10*t11)/(t12*t13-t14*t15),)
 
     def add_orphaned_reading(self, state, blob):
         '''
