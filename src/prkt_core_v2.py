@@ -300,8 +300,18 @@ class FilterParticle(object):
         return bearing_prob*color_prob
 
     def prob_position_match(self, f_mean, f_covar, s_x, s_y, bearing):
-        # TODO(buckbaskin):
-        # comment this
+        '''
+        Calculate the probability that the feature's position matches the
+        state's position and observed bearing
+        Input:
+            np.ndarray f_mean
+            np.ndarray f_covar
+            float s_x
+            float s_y
+            float bearing
+        Output:
+            float
+        '''
         f_x = f_mean[0]
         f_y = f_mean[1]
 
@@ -416,7 +426,7 @@ class FilterParticle(object):
         b = (old_reading[1].color.b + blob.color.b)/2
 
         mean = Matrix([x, y, r, g, b])
-        # TODO(buckbaskin): calculate this covariance
+        # TODO(later): calculate this covariance
         covar = Matrix([[1, 0, 0, 0, 0],
                         [0, 1, 0, 0, 0],
                         [0, 0, 1, 0, 0],
@@ -583,7 +593,7 @@ class FilterParticle(object):
         return the default weight for when a particle doesn't match an
         observation to an existing feature
         '''
-        #TODO(buckbaskin): choose/tune the right arbitrary weight
+        #TODO(later): choose/tune the right arbitrary weight
         return 0.1
 
     def generate_measurement(self, featureid):
