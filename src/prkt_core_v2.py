@@ -404,7 +404,42 @@ class FilterParticle(object):
             int
         '''
         # TODO(buckbaskin):
+        # check if the two bearings overlap
+        # if they do, find the nearest color match
         return -1
+
+    def reading_distance_function(self, state1, blob1, state2, blob2):
+        '''
+        Find a distance between two state-blob rays with colors. If they rays do
+        not intersect, the distance is infinite. Otherwise, it is the distance
+        between two colors.
+        '''
+        x1 = state1.pose.pose.position.x
+        y1 = state1.pose.pose.position.y
+        b1 = blob1.bearing + quaternion_to_heading(state1.pose.pose.orientation)
+        x2 = state2.pose.pose.position.x
+        y2 = state2.pose.pose.position.y
+        b2 = blob2.bearing + quaternion_to_heading(state2.pose.pose.orientation)
+        
+        if not self.ray_intersect(x1, y1, b1, x2, y2, b2):
+            return float('-inf')
+
+        return color_distance(blob1, blob2)
+
+    def ray_intersect(self, x1, y1, b1, x2, y2, b2):
+        #TODO(buckbaskin): see stackoverflow.com/questions/2931573/determining-if-two-rays-intersect
+
+        return True
+
+    def color_distance(self, blob1, blob2):
+        r1 = blob1.color.r
+        r2 = blob2.color.r
+        g1 = blob1.color.g
+        g2 = blob2.color.g
+        b1 = blob1.color.b
+        b2 = blob2.color.b
+
+        return math.sqrt(math.pow(r1-r2, 2)+math.pow(g1-g2, 2)+math.pow(b1-b2, 2))
 
     def add_new_feature(self, old_id, state, blob):
         '''
