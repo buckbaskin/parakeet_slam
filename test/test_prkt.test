@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="test_ooos" pkg="crispy_parakeet" type="test_prkt_ros.py" />
+</launch>
