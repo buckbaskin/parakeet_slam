@@ -424,12 +424,36 @@ class FilterParticle(object):
         if not self.ray_intersect(x1, y1, b1, x2, y2, b2):
             return float('-inf')
 
-        return color_distance(blob1, blob2)
+        return self.color_distance(blob1, blob2)
 
-    def ray_intersect(self, x1, y1, b1, x2, y2, b2):
-        #TODO(buckbaskin): see stackoverflow.com/questions/2931573/determining-if-two-rays-intersect
+    def ray_intersect(self, x1, y1, b1, x3, y3, b3):
+        '''
+        Given the (x,y) pair and bearing of two rays, find out if they intersect
+        with a reduced form of the calculation from cross_readings
 
-        return True
+        stackoverflow.com/questions/2931573/determining-if-two-rays-intersect
+        stackoverflow.com/questions/2931573/2353236
+
+        Input:
+            float x1, y1, b1, x3, y3, b3
+        Output:
+            boolean
+        '''
+        as_ = (x1, y1,)
+        ad_ = (cos(b1), sin(b1))
+        bs_ = (x3, y3,)
+        bd_ = (cos(b3), sin(b3))
+
+        det = bd_[0]*ad_[1] - bd_[1]*ad_[0]
+        if det == 0:
+            return False
+
+        dx = bs_[0] - as_[0]
+        dy = bs_[1] - as_[1]
+        u_sign = (dy * bd_[0] - dx * bd_[1]) * det
+        v_sign = (dy * ad_[0] - dx * ad_[1]) * det
+
+        return u_sign > 0 and v_sign > 0
 
     def color_distance(self, blob1, blob2):
         r1 = blob1.color.r
@@ -518,6 +542,9 @@ class FilterParticle(object):
         t15 = t7
 
         ### end temps
+
+        if (t4*t5-t6*t7) == 0 or (t12*t13-t14*t15) == 0:
+            return None
 
         return ((t0*t1-t2*t3)/(t4*t5-t6*t7), (t8*t9-t10*t11)/(t12*t13-t14*t15),)
 
@@ -628,7 +655,7 @@ class FilterParticle(object):
         return the default weight for when a particle doesn't match an
         observation to an existing feature
         '''
-        #TODO(later): choose/tune the right arbitrary weight
+        # TODO(later): choose/tune the right arbitrary weight
         return 0.1
 
     def generate_measurement(self, featureid):
@@ -638,7 +665,7 @@ class FilterParticle(object):
         state = self.state
         s_x = state.pose.pose.position.x
         s_y = state.pose.pose.position.y
-        feature = get_feature_by_id(featureid)
+        feature = self.get_feature_by_id(featureid)
         f_x = feature.mean[0]
         f_y = feature.mean[1]
 
