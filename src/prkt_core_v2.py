@@ -403,10 +403,18 @@ class FilterParticle(object):
         Output:
             int
         '''
-        # TODO(buckbaskin):
-        # check if the two bearings overlap
-        # if they do, find the nearest color match
-        return -1
+        min_dist_id = 0
+        min_dist = float('inf')
+
+        for id_, reading in self.potential_features.iteritems():
+            reading_state = reading[0]
+            reading_blob = reading[1]
+            d = self.reading_distance_function(reading_state, reading_blob, state, blob)
+            if d < min_dist:
+                min_dist = d
+                min_dist_id = id_
+
+        return min_dist_id
 
     def reading_distance_function(self, state1, blob1, state2, blob2):
         '''
@@ -422,7 +430,7 @@ class FilterParticle(object):
         b2 = blob2.bearing + quaternion_to_heading(state2.pose.pose.orientation)
         
         if not self.ray_intersect(x1, y1, b1, x2, y2, b2):
-            return float('-inf')
+            return float('inf')
 
         return self.color_distance(blob1, blob2)
 
