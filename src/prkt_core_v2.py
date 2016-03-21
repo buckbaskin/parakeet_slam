@@ -26,7 +26,7 @@ from random import random
 # from scipy.stats import multivariate_normal
 from utils import heading_to_quaternion, quaternion_to_heading, scale
 from utils import dot_product, unit
-from viz_feature_sim.msg import VizScan, Blob
+from viz_feature_sim.msg import Blob
 
 # pylint: disable=no-name-in-module
 from scipy.stats import multivariate_normal
@@ -409,7 +409,8 @@ class FilterParticle(object):
         for id_, reading in self.potential_features.iteritems():
             reading_state = reading[0]
             reading_blob = reading[1]
-            d = self.reading_distance_function(reading_state, reading_blob, state, blob)
+            d = self.reading_distance_function(reading_state, reading_blob,
+                state, blob)
             if d < min_dist:
                 min_dist = d
                 min_dist_id = id_
@@ -428,7 +429,7 @@ class FilterParticle(object):
         x2 = state2.pose.pose.position.x
         y2 = state2.pose.pose.position.y
         b2 = blob2.bearing + quaternion_to_heading(state2.pose.pose.orientation)
-        
+
         if not self.ray_intersect(x1, y1, b1, x2, y2, b2):
             return float('inf')
 
@@ -471,6 +472,7 @@ class FilterParticle(object):
         b1 = blob1.color.b
         b2 = blob2.color.b
 
+        # pylint: disable=line-too-long
         return math.sqrt(math.pow(r1-r2, 2)+math.pow(g1-g2, 2)+math.pow(b1-b2, 2))
 
     def add_new_feature(self, old_id, state, blob):
@@ -508,7 +510,7 @@ class FilterParticle(object):
         direction of the two readings.
         Returns a tuple of the x, y pair where the two vectors intersect
 
-        See https://en.wikipedia.org/wiki/Line-line_intersection#Intersection_of_two_lines
+        See https://en.wikipedia.org/wiki/Line-line_intersection
 
         Input:
             (Odometry, Blob,) old_reading
@@ -516,7 +518,7 @@ class FilterParticle(object):
         Output:
             (float, float)
         '''
-        
+
         x1 = old_reading[0].pose.pose.position.x
         y1 = old_reading[0].pose.pose.position.y
         h1 = quaternion_to_heading(old_reading[0].pose.pose.orientation)
@@ -531,17 +533,17 @@ class FilterParticle(object):
 
         ### temps
 
-        t0  = x1*y2-y1*x2
-        t1  = x3-x4
-        t2  = x1-x2
-        t3  = x3*y4-x4*y3
-        t4  = t2
-        t5  = y3-y4
-        t6  = y1-y2
-        t7  = t1
+        t0 = x1*y2-y1*x2
+        t1 = x3-x4
+        t2 = x1-x2
+        t3 = x3*y4-x4*y3
+        t4 = t2
+        t5 = y3-y4
+        t6 = y1-y2
+        t7 = t1
 
-        t8  = t0
-        t9  = t5
+        t8 = t0
+        t9 = t5
         t10 = t6
         t11 = t3
         t12 = t4
