@@ -11,3 +11,5 @@ print('\n...\n')
 import scipy
 
 print('... Imported scipy')
+
+from scipy.stats import multivariate_normal
