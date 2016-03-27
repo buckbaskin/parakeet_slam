@@ -56,4 +56,3 @@ class CamSlam360(object):
 if __name__ == '__main__':
     cs = CamSlam360()
     cs.run()
-
