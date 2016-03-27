@@ -30,6 +30,8 @@ class CamSlam360(object):
         self.cam_sub = rospy.Subscriber('/360cam/features', VizScan,
             self.measurement_update)
         self.twist_sub = rospy.Subscriber('/cmd_vel', Twist, self.motion_update)
+    
+    def run(self):
         rospy.spin()
 
     def initialize_particle_filter(self):
@@ -52,5 +54,6 @@ class CamSlam360(object):
 
 
 if __name__ == '__main__':
-    CamSlam360()
+    cs = CamSlam360()
+    cs.run()
 
