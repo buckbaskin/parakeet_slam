@@ -246,7 +246,33 @@ class prktFilterParticleTest(unittest.TestCase):
         min_dist_id = particle.find_nearest_reading(state2, blob2)
         self.assertEqual(min_dist_id, -1)
 
+    def test_reading_distance_function(self):
+        particle = FilterParticle()
+        state1 = Odometry()
+        blob1 = Blob()
 
+        # lines are parallel, should have no intersection
+        state2 = Odometry()
+        state2.pose.pose.position.y = 1
+        blob2 = Blob()
+        result2 = particle.reading_distance_function(state1, blob1, state2, blob2)
+        self.assertEqual(result2, float('inf'))
+
+        # lines don't intersect should have no intersection
+        state3 = Odometry()
+        state3.pose.pose.position.y = 1
+        blob3 = Blob()
+        blob3.bearing = 1.0
+        result3 = particle.reading_distance_function(state1, blob1, state3, blob3)
+        self.assertEqual(result3, float('inf'))
+
+        # lines intersect, color is the same
+        state4 = Odometry()
+        state4.pose.pose.position.y = 1
+        blob4 = Blob()
+        blob4.bearing = -1.0
+        result4 = particle.reading_distance_function(state1, blob1, state4, blob4)
+        self.assertEqual(result4, 0.0)
 
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
