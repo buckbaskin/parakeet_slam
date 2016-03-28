@@ -354,6 +354,30 @@ class prktFilterParticleTest(unittest.TestCase):
 
         self.assertTrue(original_size < new_size)
 
+    # def test_measurement_jacobian(self):
+        # TODO(buckbaskin): I'm not sure if I know what to do here to reliably
+        #   show if it is correct
+        # pass
+
+    # def test_measurement_covariance(self):
+        # TODO(buckbaskin): I'm not sure if I know what to do here to reliably
+        #   show if it is correct
+        # pass
+
+    # def test_measurement_kalman_gain(self):
+        # TODO(buckbaskin): I'm not sure if I know what to do here to reliably
+        #   show if it is correct
+        # pass
+
+    # def test_importance_factor(self):
+        # TODO(buckbaskin): I'm not sure if I know what to do here to reliably
+        #   show if it is correct
+        # pass
+
+    def test_generate_measurement(self):
+        # TODO(buckbaskin): start here
+        pass
+
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
         feature = Feature()
