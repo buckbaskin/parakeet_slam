@@ -116,8 +116,6 @@ class prktFilterParticleTest(unittest.TestCase):
 
         bearing = math.pi
         line_up_result3 = particle.prob_position_match(f_mean, f_covar, s_x, s_y, bearing)
-        # example test to show value in output
-        self.assertEqual(line_up_result3, 0.0)
         self.assertTrue(line_up_result2 > line_up_result3)
 
 class prktFeatureTest(unittest.TestCase):

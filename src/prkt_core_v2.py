@@ -315,6 +315,10 @@ class FilterParticle(object):
         f_x = f_mean[0]
         f_y = f_mean[1]
 
+        pse_bearing = math.atan2(f_y-s_y, f_x-s_x)
+        if abs(pse_bearing - bearing) > math.pi/2:
+            return 0
+
         # find closest point to feature on the line from state, bearing
         near_x, near_y = self.closest_point(f_x, f_y, s_x, s_y, bearing)
 
