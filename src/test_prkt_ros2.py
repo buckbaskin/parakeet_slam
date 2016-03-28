@@ -291,13 +291,32 @@ class prktFilterParticleTest(unittest.TestCase):
 
         x2 = 1.0
         y2 = 0.0
-        b2 = 2*math.pi/4
+        b2 = math.pi/2.0
 
-        print('calc now...')
         calc = particle.ray_intersect(x1, y1, b1, x2, y2, b2)
-        print(calc)
-        print('assert now...')
         self.assertTrue(calc)
+
+        x1 = 0.0
+        y1 = 0.0
+        b1 = math.pi/4
+
+        x2 = 1.0
+        y2 = 0.0
+        b2 = 3*math.pi/4
+
+        calc = particle.ray_intersect(x1, y1, b1, x2, y2, b2)
+        self.assertTrue(calc)
+
+        x1 = 0.0
+        y1 = 0.0
+        b1 = math.pi/4
+
+        x2 = -1.0
+        y2 = 0.0
+        b2 = 3*math.pi/4
+
+        calc = particle.ray_intersect(x1, y1, b1, x2, y2, b2)
+        self.assertFalse(calc)
 
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
