@@ -8,8 +8,9 @@ import rospy
 import sys
 sys.path.append('/home/buck/ros_workspace/src')
 
-import unittest
+import math
 import numpy as np
+import unittest
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
@@ -67,24 +68,29 @@ class prktFilterParticleTest(unittest.TestCase):
         is_f1 = particle.get_feature_by_id(-3)
         self.assertEqual(f1.arbitrary_id, is_f1.arbitrary_id)
 
-    def test_probability_of_match(self):
+    def test_probability_of_match_color(self):
         particle = FilterParticle()
-
-        # two 0 cases: colors far apart, bearing far off
         state = Odometry()
+        # two 0 cases: colors far apart, _bearing_ far off
         blob_color = Blob()
-        blob_color.color.r = 0
-        blob_color.color.g = 0
-        blob_color.color.b = 255
-        feature = Feature(mean=np.array([1,0,255,0,0]))
+        blob_color.color.r = 255
+        feature = Feature(mean=np.array([1,0,0,0,0]))
+
+        self.assertTrue(isinstance(feature.mean, np.ndarray))
 
         result_color = particle.probability_of_match(state, blob_color, feature)
 
         self.assertEqual(result_color, 0.0)
 
+    def test_probability_of_match_bearing(self):
+        particle = FilterParticle()
+        state = Odometry()
+        # two 0 cases: colors far apart, _bearing_ far off
         blob_bearing = Blob()
         blob_bearing.bearing = math.pi
         feature = Feature(mean=np.array([1,0,0,0,0]))
+
+        self.assertTrue(isinstance(feature.mean, np.ndarray))
 
         result_bearing = particle.probability_of_match(state, blob_bearing, feature)
 

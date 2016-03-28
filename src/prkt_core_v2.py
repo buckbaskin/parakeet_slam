@@ -290,7 +290,7 @@ class FilterParticle(object):
             return 0.0
         else:
             # pylint: disable=line-too-long
-            bearing_prob = self.prob_position_match(f_x, f_y, s_x, s_y, observed_bearing)
+            bearing_prob = self.prob_position_match(f_mean, f_covar, s_x, s_y, observed_bearing)
 
         if abs(color_distance) > 300:
             return 0.0
