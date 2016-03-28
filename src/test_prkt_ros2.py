@@ -194,6 +194,60 @@ class prktFilterParticleTest(unittest.TestCase):
         result4 = particle.prob_color_match(f_mean, f_covar, blob)
         self.assertTrue(result4 < result2)
 
+    def test_add_hypothesis(self):
+        # TODO(buckbaskin): this is based on other code that needs tested first
+        pass
+
+    def test_find_nearest_reading(self):
+        particle = FilterParticle()
+        state1 = Odometry() # 0,0
+        blob1 = Blob()
+        blob1.bearing = .1
+        
+        state2 = Odometry() # 0,1
+        state2.pose.pose.position.y = 1
+        blob2 = Blob()
+        blob2.bearing = -.1
+
+        particle.potential_features[-1] = (state1, blob1)
+
+        min_dist_id = particle.find_nearest_reading(state2, blob2)
+        self.assertEqual(min_dist_id, -1)
+
+        # parallel to state2 option, should not match
+        state3 = Odometry()
+        state3.pose.pose.position.y = 1
+        blob3 = Blob()
+        blob3.bearing = -.1
+        particle.potential_features[-3] = (state3, blob3)
+
+        min_dist_id = particle.find_nearest_reading(state2, blob2)
+        self.assertEqual(min_dist_id, -1)
+
+        # wrong color option, should not match
+        state4 = Odometry() # 0,0
+        blob4 = Blob()
+        blob4.bearing = .1
+        blob4.color.r = 255
+        blob4.color.g = 255
+        blob4.color.b = 255
+        particle.potential_features[-4] = (state4, blob4)
+
+        min_dist_id = particle.find_nearest_reading(state2, blob2)
+        self.assertEqual(min_dist_id, -1)
+
+        # doesn't intersect state 2, should not match
+        state5 = Odometry() # 0,0
+        state5.pose.pose.position.y = 100
+        blob5 = Blob()
+        blob5.bearing = -.1
+        particle.potential_features[-5] = (state4, blob4)
+
+        min_dist_id = particle.find_nearest_reading(state2, blob2)
+        self.assertEqual(min_dist_id, -1)
+
+
+
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
         feature = Feature()
@@ -209,8 +263,8 @@ if __name__ == '__main__':
     # rospy.loginfo(sys.version.split(' ')[0])
 
     import rostest
-    rostest.rosrun('crispy_parakeet', 'test_prkt_ros_functionality', RosFunctionalityTest)
-    rostest.rosrun('crispy_parakeet', 'test_prkt_FastSLAM', prktFastSLAMTest)
-    rostest.rosrun('crispy_parakeet', 'test_prkt_Feature', prktFeatureTest)
+    # rostest.rosrun('crispy_parakeet', 'test_prkt_ros_functionality', RosFunctionalityTest)
+    # rostest.rosrun('crispy_parakeet', 'test_prkt_FastSLAM', prktFastSLAMTest)
+    # rostest.rosrun('crispy_parakeet', 'test_prkt_Feature', prktFeatureTest)
     rostest.rosrun('crispy_parakeet', 'test_prkt_FilterParticle', prktFilterParticleTest)
     
