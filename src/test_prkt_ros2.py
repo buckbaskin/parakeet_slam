@@ -283,6 +283,22 @@ class prktFilterParticleTest(unittest.TestCase):
         result5 = particle.reading_distance_function(state1, blob1, state5, blob5)
         self.assertTrue(result5 > 0.0)
 
+    def test_ray_intersect(self):
+        particle = FilterParticle()
+        x1 = 0.0
+        y1 = 0.0
+        b1 = 0.0
+
+        x2 = 1.0
+        y2 = 0.0
+        b2 = 2*math.pi/4
+
+        print('calc now...')
+        calc = particle.ray_intersect(x1, y1, b1, x2, y2, b2)
+        print(calc)
+        print('assert now...')
+        self.assertTrue(calc)
+
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
         feature = Feature()

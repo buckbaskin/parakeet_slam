@@ -461,16 +461,19 @@ class FilterParticle(object):
         bs_ = (x3, y3,)
         bd_ = (cos(b3), sin(b3))
 
-        det = bd_[0]*ad_[1] - bd_[1]*ad_[0]
-        if det == 0:
+        if (ad_[1]*bd_[0]-ad_[0]*bd_[1]) == 0:
             return False
 
-        dx = bs_[0] - as_[0]
-        dy = bs_[1] - as_[1]
-        u_sign = (dy * bd_[0] - dx * bd_[1]) * det
-        v_sign = (dy * ad_[0] - dx * ad_[1]) * det
+        v = ((ad_[0]*bs_[1] - ad_[1]*bs_[0] + ad_[1]*as_[0] - ad_[0]*as_[1]) / 
+            (ad_[1]*bd_[0]-ad_[0]*bd_[1]))
 
-        return u_sign > 0 and v_sign > 0
+        if (abs(ad_[1]) < abs(ad_[0])):
+            u = (bs_[0] + bd_[0]*v-as_[0])/(ad_[0])
+        else:
+            u = (bs_[1] + bd_[1]*v-as_[1])/(ad_[1])
+
+
+        return u >= 0 and v >= 0
 
     def color_distance(self, blob1, blob2):
         r1 = blob1.color.r
