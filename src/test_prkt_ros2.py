@@ -24,31 +24,31 @@ class RosFunctionalityTest(unittest.TestCase):
 
     def test_initialization(self):
         cs = CamSlam360()
-        self.assertTrue(isinstance(cs.core, FastSLAM))
+        self.assertIsInstance(cs.core, FastSLAM)
 
     def test_slam_exists(self):
         cs = CamSlam360()
-        self.assertTrue(isinstance(cs.core, FastSLAM))
-        self.assertTrue(isinstance(cs.cam_sub, rospy.Subscriber))
-        self.assertTrue(isinstance(cs.twist_sub, rospy.Subscriber))
+        self.assertIsInstance(cs.core, FastSLAM)
+        self.assertIsInstance(cs.cam_sub, rospy.Subscriber)
+        self.assertIsInstance(cs.twist_sub, rospy.Subscriber)
 
 class prktFastSLAMTest(unittest.TestCase):
     # it will be very hard to test the methods in the FastSLAM class alone
     #   because they don't return any values and/or they involve random noise
     def test_initilization(self):
         fs = FastSLAM()
-        self.assertTrue(isinstance(fs.last_control, Twist))
-        self.assertTrue(isinstance(fs.last_update, rospy.Time))
-        self.assertTrue(isinstance(fs.particles, list))
-        self.assertTrue(isinstance(fs.Qt, np.ndarray))
+        self.assertIsInstance(fs.last_control, Twist)
+        self.assertIsInstance(fs.last_update, rospy.Time)
+        self.assertIsInstance(fs.particles, list)
+        self.assertIsInstance(fs.Qt, np.ndarray)
 
 class prktFilterParticleTest(unittest.TestCase):
     def test_initialization(self):
         particle = FilterParticle()
-        self.assertTrue(isinstance(particle.state, Odometry))
-        self.assertTrue(isinstance(particle.feature_set, dict))
-        self.assertTrue(isinstance(particle.potential_features, dict))
-        self.assertTrue(isinstance(particle.hypothesis_set, dict))
+        self.assertIsInstance(particle.state, Odometry)
+        self.assertIsInstance(particle.feature_set, dict)
+        self.assertIsInstance(particle.potential_features, dict)
+        self.assertIsInstance(particle.hypothesis_set, dict)
         self.assertEqual(particle.weight, 1)
         self.assertEqual(particle.next_id, 1)
 
@@ -76,7 +76,7 @@ class prktFilterParticleTest(unittest.TestCase):
         blob_color.color.r = 255
         feature = Feature(mean=np.array([1,0,0,0,0]))
 
-        self.assertTrue(isinstance(feature.mean, np.ndarray))
+        self.assertIsInstance(feature.mean, np.ndarray)
 
         result_color = particle.probability_of_match(state, blob_color, feature)
 
@@ -90,7 +90,7 @@ class prktFilterParticleTest(unittest.TestCase):
         blob_bearing.bearing = math.pi
         feature = Feature(mean=np.array([1,0,0,0,0]))
 
-        self.assertTrue(isinstance(feature.mean, np.ndarray))
+        self.assertIsInstance(feature.mean, np.ndarray)
 
         result_bearing = particle.probability_of_match(state, blob_bearing, feature)
 
@@ -114,6 +114,12 @@ class prktFilterParticleTest(unittest.TestCase):
         self.assertTrue(line_up_result2 < 0.05)
         self.assertTrue(line_up_result1 > line_up_result2)
 
+        bearing = -1.0
+        line_up_result2 = particle.prob_position_match(f_mean, f_covar, s_x, s_y, bearing)
+        self.assertTrue(line_up_result2 < 0.05)
+        self.assertTrue(line_up_result2 > 0.0)
+        self.assertTrue(line_up_result1 > line_up_result2)
+
         bearing = math.pi
         line_up_result3 = particle.prob_position_match(f_mean, f_covar, s_x, s_y, bearing)
         self.assertTrue(line_up_result2 > line_up_result3)
@@ -121,9 +127,9 @@ class prktFilterParticleTest(unittest.TestCase):
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
         feature = Feature()
-        self.assertTrue(isinstance(feature.mean, np.ndarray))
-        self.assertTrue(isinstance(feature.covar, np.ndarray))
-        self.assertTrue(isinstance(feature.identity, np.ndarray))
+        self.assertIsInstance(feature.mean, np.ndarray)
+        self.assertIsInstance(feature.covar, np.ndarray)
+        self.assertIsInstance(feature.identity, np.ndarray)
         self.assertEqual(feature.update_count, 0)
 
 if __name__ == '__main__':
