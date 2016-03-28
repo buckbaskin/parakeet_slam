@@ -521,6 +521,8 @@ class FilterParticle(object):
         direction of the two readings.
         Returns a tuple of the x, y pair where the two vectors intersect
 
+        This will return not None even if the vectors/half-lines don't intersect
+
         See https://en.wikipedia.org/wiki/Line-line_intersection
 
         Input:
@@ -533,12 +535,14 @@ class FilterParticle(object):
         x1 = old_reading[0].pose.pose.position.x
         y1 = old_reading[0].pose.pose.position.y
         h1 = quaternion_to_heading(old_reading[0].pose.pose.orientation)
+        h1 = h1+old_reading[1].bearing
         x2 = x1+cos(h1)
         y2 = y1+sin(h1)
 
         x3 = new_reading[0].pose.pose.position.x
         y3 = new_reading[0].pose.pose.position.y
         h3 = quaternion_to_heading(new_reading[0].pose.pose.orientation)
+        h3 = h3+new_reading[1].bearing
         x4 = x3+cos(h3)
         y4 = y3+sin(h3)
 

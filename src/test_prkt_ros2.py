@@ -16,6 +16,7 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from prkt_core_v2 import FastSLAM, FilterParticle, Feature
 from prkt_ros import CamSlam360
+from utils import heading_to_quaternion
 from viz_feature_sim.msg import Blob
 
 class RosFunctionalityTest(unittest.TestCase):
@@ -317,6 +318,41 @@ class prktFilterParticleTest(unittest.TestCase):
 
         calc = particle.ray_intersect(x1, y1, b1, x2, y2, b2)
         self.assertFalse(calc)
+
+    def test_add_new_feature(self):
+        # TODO(buckbaskin): this is based on other code that needs tested first
+        pass
+
+    def test_cross_readings(self):
+        particle = FilterParticle()
+        old_reading = (Odometry(), Blob(),)
+        new_odom = Odometry()
+        new_odom.pose.pose.orientation = heading_to_quaternion(math.pi/2)
+        new_reading = (new_odom, Blob(),)
+
+        result = particle.cross_readings(old_reading, new_reading)
+        self.assertIsNotNone(result)
+        self.assertEqual(result[0], 0.0)
+        self.assertEqual(result[1], 0.0)
+
+        new_odom = Odometry()
+        new_odom.pose.pose.orientation = heading_to_quaternion(0.0)
+        new_odom.pose.pose.position.y = -1.0
+        new_reading = (new_odom, Blob(),)
+
+        result = particle.cross_readings(old_reading, new_reading)
+        self.assertIsNone(result)
+
+    def test_add_orphaned_reading(self):
+        particle = FilterParticle()
+
+        original_size = len(particle.hypothesis_set)
+
+        particle.add_orphaned_reading(Odometry(), Blob())
+
+        new_size = len(particle.hypothesis_set)
+
+        self.assertTrue(original_size < new_size)
 
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
