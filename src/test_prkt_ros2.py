@@ -124,6 +124,9 @@ class prktFilterParticleTest(unittest.TestCase):
         line_up_result3 = particle.prob_position_match(f_mean, f_covar, s_x, s_y, bearing)
         self.assertTrue(line_up_result2 > line_up_result3)
 
+    def test_closest_point(self):
+        particle = FilterParticle()
+
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
         feature = Feature()
