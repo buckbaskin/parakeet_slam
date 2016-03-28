@@ -96,6 +96,30 @@ class prktFilterParticleTest(unittest.TestCase):
 
         self.assertEqual(result_bearing, 0.0)
 
+    def test_prob_position_match(self):
+        particle = FilterParticle()
+
+        f_mean = np.array([1,0,0,0,0])
+        f_covar = np.array([[.1,0],
+                            [0,.1]])
+        s_x = 0.0
+        s_y = 0.0
+        bearing = 0.0
+
+        line_up_result1 = particle.prob_position_match(f_mean, f_covar, s_x, s_y, bearing)
+        self.assertTrue(line_up_result1 > 1.59)
+
+        bearing = 1.0
+        line_up_result2 = particle.prob_position_match(f_mean, f_covar, s_x, s_y, bearing)
+        self.assertTrue(line_up_result2 < 0.05)
+        self.assertTrue(line_up_result1 > line_up_result2)
+
+        bearing = math.pi
+        line_up_result3 = particle.prob_position_match(f_mean, f_covar, s_x, s_y, bearing)
+        # example test to show value in output
+        self.assertEqual(line_up_result3, 0.0)
+        self.assertTrue(line_up_result2 > line_up_result3)
+
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
         feature = Feature()
