@@ -161,6 +161,39 @@ class prktFilterParticleTest(unittest.TestCase):
         self.assertEqual(c_x , 0.0)
         self.assertEqual(c_y , 0.0)
 
+    def test_prob_color_match(self):
+        # Note to self: check and see if the 0 is a problem for high covariance
+        particle = FilterParticle()
+        f_mean = np.array([0,0,255,0,0])
+        f_covar = list([[0,0,0,0,0],
+                        [0,0,0,0,0],
+                        [0,0,5,0,0],
+                        [0,0,0,5,0],
+                        [0,0,0,0,5]])
+        f_covar = np.array(f_covar)
+        blob = Blob()
+        blob.color.r = 255
+        blob.color.g = 0
+        blob.color.b = 0
+
+        result1 = particle.prob_color_match(f_mean, f_covar, blob)
+        self.assertTrue(result1 > 0.005)
+
+        blob.color.r = 250
+
+        result2 = particle.prob_color_match(f_mean, f_covar, blob)
+        self.assertTrue(result2 < result1)
+
+        blob.color.b = 5
+
+        result3 = particle.prob_color_match(f_mean, f_covar, blob)
+        self.assertTrue(result3 < result2)
+
+        blob.color.r = 200
+
+        result4 = particle.prob_color_match(f_mean, f_covar, blob)
+        self.assertTrue(result4 < result2)
+
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
         feature = Feature()
