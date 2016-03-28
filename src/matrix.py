@@ -4,7 +4,7 @@ from numpy import dot as mm
 from viz_feature_sim.msg import VizScan, Blob
 
 def Matrix(array_like):
-    print 'Matrix method'
+    # print 'Matrix method'
     np_array = np.array(array_like)
     return np_array
 
