@@ -336,7 +336,7 @@ class FilterParticle(object):
         Calculate the closest point on the line to the feature
         The feature is the point (probably not on the line)
         The line is defined by a point (state x and y) and direction (heading)
-        This may return a point that is behind the x-y-bearing.
+        This probably won't return a point that is behind the x-y-bearing.
         Input:
             f_x float (feature's x coordinate)
             f_y float (feature's y coordinate)
@@ -349,10 +349,11 @@ class FilterParticle(object):
 
         # origin_to_feature dot line_parallel = magnitude of otf along line
         magmag = dot_product(origin_to_feature, line_parallel)
+        
         if magmag < 0:
-            magmag == 0
+            return (s_x, s_y)
+        
         scaled_line = scale(line_parallel, magmag)
-
         scaled_x = scaled_line[0]
         scaled_y = scaled_line[1]
 

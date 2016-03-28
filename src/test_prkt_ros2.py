@@ -125,7 +125,34 @@ class prktFilterParticleTest(unittest.TestCase):
         self.assertTrue(line_up_result2 > line_up_result3)
 
     def test_closest_point(self):
+        print('test_closest_point')
         particle = FilterParticle()
+        f_x = 1.0
+        f_y = 0.0
+        s_x = 0.0
+        s_y = 0.0
+        bearing = 0.0
+
+        c_x, c_y = particle.closest_point(f_x, f_y, s_x, s_y, bearing)
+        self.assertEqual(c_x, 1.0)
+        self.assertEqual(c_y, 0.0)
+
+        bearing = math.pi/2
+
+        c_x, c_y = particle.closest_point(f_x, f_y, s_x, s_y, bearing)
+        self.assertTrue(c_x < .00001)
+        self.assertTrue(c_y < .00001)
+
+        print('bearing pi')
+
+        bearing = math.pi
+
+        print('called once')
+        c_x, c_y = particle.closest_point(f_x, f_y, s_x, s_y, bearing)
+        print((c_x, c_y,))
+        print('assert now')
+        self.assertEqual(c_x , 0.0)
+        self.assertEqual(c_y , 0.0)
 
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
