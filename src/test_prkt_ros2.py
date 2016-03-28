@@ -12,8 +12,10 @@ import unittest
 import numpy as np
 
 from geometry_msgs.msg import Twist
-from prkt_core_v2 import FastSLAM
+from nav_msgs.msg import Odometry
+from prkt_core_v2 import FastSLAM, FilterParticle, Feature
 from prkt_ros import CamSlam360
+from viz_feature_sim.msg import Blob
 
 class RosFunctionalityTest(unittest.TestCase):
     def test(self):
@@ -40,7 +42,53 @@ class prktFastSLAMTest(unittest.TestCase):
         self.assertTrue(isinstance(fs.Qt, np.ndarray))
 
 class prktFilterParticleTest(unittest.TestCase):
-    pass
+    def test_initialization(self):
+        particle = FilterParticle()
+        self.assertTrue(isinstance(particle.state, Odometry))
+        self.assertTrue(isinstance(particle.feature_set, dict))
+        self.assertTrue(isinstance(particle.potential_features, dict))
+        self.assertTrue(isinstance(particle.hypothesis_set, dict))
+        self.assertEqual(particle.weight, 1)
+        self.assertEqual(particle.next_id, 1)
+
+    def test_get_feature_by_id(self):
+        particle = FilterParticle()
+        f0 = Feature()
+        f0.arbitrary_id = 'tangled'
+        particle.feature_set[2] = f0
+
+        is_f0 = particle.get_feature_by_id(2)
+        self.assertEqual(f0.arbitrary_id, is_f0.arbitrary_id)
+
+        f1 = Feature()
+        f1.arbitrary_id = 'snow white'
+        particle.potential_features[-3] = f1
+
+        is_f1 = particle.get_feature_by_id(-3)
+        self.assertEqual(f1.arbitrary_id, is_f1.arbitrary_id)
+
+    def test_probability_of_match(self):
+        particle = FilterParticle()
+
+        # two 0 cases: colors far apart, bearing far off
+        state = Odometry()
+        blob_color = Blob()
+        blob_color.color.r = 0
+        blob_color.color.g = 0
+        blob_color.color.b = 255
+        feature = Feature(mean=np.array([1,0,255,0,0]))
+
+        result_color = particle.probability_of_match(state, blob_color, feature)
+
+        self.assertEqual(result_color, 0.0)
+
+        blob_bearing = Blob()
+        blob_bearing.bearing = math.pi
+        feature = Feature(mean=np.array([1,0,0,0,0]))
+
+        result_bearing = particle.probability_of_match(state, blob_bearing, feature)
+
+        self.assertEqual(result_bearing, 0.0)
 
 if __name__ == '__main__':
     # rospy.init_node('test_node_010a0as12asdjkfobu')
@@ -51,3 +99,4 @@ if __name__ == '__main__':
     import rostest
     rostest.rosrun('crispy_parakeet', 'test_prkt_ros_functionality', RosFunctionalityTest)
     rostest.rosrun('crispy_parakeet', 'test_prkt_FastSLAM', prktFastSLAMTest)
+    rostest.rosrun('crispy_parakeet', 'test_prkt_FilterParticle', prktFilterParticleTest)
