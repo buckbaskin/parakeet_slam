@@ -39,7 +39,10 @@ class FastSLAM(object):
         self.particles = [FilterParticle()] * self.num_particles
         for particle in self.particles:
             particle.load_feature_list(preset_features)
-        self.Qt = Matrix([[1, 0], [0, 1]]) # measurement noise?
+        self.Qt = Matrix([[1, 0, 0, 0], 
+                          [0, 1, 0, 0],
+                          [0, 0, 1, 0],
+                          [0, 0, 0, 1]]) # measurement noise
 
     def cam_cb(self, scan):
         # motion update all particles
