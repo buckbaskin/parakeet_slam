@@ -296,16 +296,20 @@ class FilterParticle(object):
                             math.pow(blob.color.g - f_mean[3], 2) +
                             math.pow(blob.color.b - f_mean[4], 2))
 
+        # add the 500s to boost small numbers away from 0. Everything gets the
+        #   multiple, but it should make the multiplication of the two numbers
+        #   less likely to hit 0 unless one of them really is 0
+
         if abs(del_bearing) > 0.5:
             return 0.0
         else:
             # pylint: disable=line-too-long
-            bearing_prob = self.prob_position_match(f_mean, f_covar, s_x, s_y, observed_bearing)
+            bearing_prob = 500.0*self.prob_position_match(f_mean, f_covar, s_x, s_y, observed_bearing)
 
         if abs(color_distance) > 300:
             return 0.0
         else:
-            color_prob = self.prob_color_match(f_mean, f_covar, blob)
+            color_prob = 500.0*self.prob_color_match(f_mean, f_covar, blob)
 
         if not isinstance(bearing_prob, float):
             print('type(bearing_prob) '+str(type(bearing_prob)))
