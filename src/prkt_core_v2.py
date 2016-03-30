@@ -647,20 +647,17 @@ class FilterParticle(object):
         q = pow(feature_x - mean_x, 2) + pow(feature_y - mean_y, 2)
 
         # d_phi/d_x = (feature_y - mean_y) / q
-        d_phi_d_x = (feature_y - mean_y) / q
+        d_bear_d_x = (feature_y - mean_y) / q
 
         # d_phi/d_y = (feature_x - mean_x) / q
-        d_phi_d_y = (feature_x - mean_x) / q
-
-        # d_phi/d_theta = -1
-        d_phi_d_theta = -1.0
+        d_bear_d_y = (feature_x - mean_x) / q
 
 
         # TODO(buckbaskin): start here
-        return Matrix([[d_phi_d_x, d_phi_d_y, d_phi_d_theta],
-                         [0.0, 0.0, 1.0, 0.0, 0.0],
-                         [0.0, 0.0, 0.0, 1.0, 0.0],
-                         [0.0, 0.0, 0.0, 0.0, 1.0]])
+        return Matrix([[d_bear_d_x, d_bear_d_y, 0.0, 0.0, 0.0],
+                         [0.0,      0.0,        1.0, 0.0, 0.0],
+                         [0.0,      0.0,        0.0, 1.0, 0.0],
+                         [0.0,      0.0,        0.0, 0.0, 1.0]])
 
     def measurement_covariance(self, bigH, feature_id, Qt):
         '''
