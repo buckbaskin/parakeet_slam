@@ -88,9 +88,9 @@ class CamSlam360(object):
         count = float(len(self.core.particles))
 
         for particle in self.core.particles:
-            x += particle.pose.pose.position.x
-            y += particle.pose.pose.position.y
-            heading_sum += quaternion_to_heading(particle.pose.pose.orientation)
+            x += particle.state.pose.pose.position.x
+            y += particle.state.pose.pose.position.y
+            heading_sum += quaternion_to_heading(particle.state.pose.pose.orientation)
 
         x = x_sum / count
         y = y_sum / count

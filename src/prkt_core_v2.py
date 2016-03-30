@@ -125,15 +125,15 @@ class FastSLAM(object):
 
         dheading = twist.angular.z * dt
 
-        drive_noise = normal(0, .05*v+.01*w, 1)
-        ds = twist.twist.linear.x * dt + drive_noise
+        drive_noise = normal(0, abs(.05*v)+abs(.01*w)+.01, 1)
+        ds = twist.linear.x * dt + drive_noise
 
-        prev_heading = quaternion_to_heading(particle.pose.pose.orientation)
+        prev_heading = quaternion_to_heading(particle.state.pose.pose.orientation)
 
-        heading_noise = normal(0, .05*w+.01*v, 1)
+        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.01, 1)
         heading_1 = prev_heading+dheading/2+heading_noise
 
-        heading_noise = normal(0, .05*w+.01*v, 1)
+        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.01, 1)
         heading_2 = heading_1+dheading/2+heading_noise
 
         dx = ds*cos(heading_1)
