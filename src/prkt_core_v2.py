@@ -623,14 +623,17 @@ class FilterParticle(object):
 
         ...
 
-        State = { x, y, heading } = [x , y, heading (theta)]
-        measurements = { bearing, r, g, b} = [bearing (phi), r, g, b]
+        measurement = { bearing, r, g, b } = [x , y, heading (theta)]
+        feature = { x, y, r, g, b} = [x, y, r, g, b]
 
         Jacobian =
-        [[d phi/d x, d phi/d y, d phi/d theta],
-         [d r/d x,   d r/d y,   d r/d theta  ],
-         [d g/d x,   d g/d y,   d g/d theta  ],
-         [d b/d x,   d b/d y,   d b/d theta  ]]
+        [[d bear/d x, d bear/d y, d bear/d r, d bear/d g, d bear/d b],
+         [d r/d x,    d r/d y,    d r/d r,    d r/d g,    d r/d b],
+         [d g/d x,    d g/d y,    d g/d r,    d g/d g,    d g/d b],
+         [d b/d x,    d b/d y,    d b/d r,    d b/d g,    d b/d b]]
+
+         Moving jacobian from derivative of measurement wrt pose
+         to derivative of measurement wrt to feature state
         '''
         state = self.state
         mean_x = state.pose.pose.position.x
@@ -652,10 +655,12 @@ class FilterParticle(object):
         # d_phi/d_theta = -1
         d_phi_d_theta = -1.0
 
+
+        # TODO(buckbaskin): start here
         return Matrix([[d_phi_d_x, d_phi_d_y, d_phi_d_theta],
-                         [0.0, 0.0, 0.0],
-                         [0.0, 0.0, 0.0],
-                         [0.0, 0.0, 0.0]])
+                         [0.0, 0.0, 1.0, 0.0, 0.0],
+                         [0.0, 0.0, 0.0, 1.0, 0.0],
+                         [0.0, 0.0, 0.0, 0.0, 1.0]])
 
     def measurement_covariance(self, bigH, feature_id, Qt):
         '''
