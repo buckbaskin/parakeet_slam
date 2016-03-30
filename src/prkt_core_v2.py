@@ -18,7 +18,7 @@ import math
 from copy import deepcopy
 from geometry_msgs.msg import Twist
 from math import sin, cos
-from matrix import inverse, transpose, mm, identity, magnitude, madd, msubtract
+from matrix import inverse, mm, identity, magnitude, madd, msubtract
 from matrix import blob_to_matrix, Matrix
 from nav_msgs.msg import Odometry
 from numpy.random import normal
@@ -610,7 +610,7 @@ class FilterParticle(object):
     def measurement_jacobian(self, feature_id):
         '''
         Calculate the Jacobian of the measurement model with respect to the
-        current particle state and the give feature's mean
+        current particle state and the given feature's mean
 
         bigH is the Jacobian of the measurement model with respect to the best
         estimate of the robot's position at the time of the update (computed at
@@ -669,7 +669,8 @@ class FilterParticle(object):
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
-        return Matrix(madd(mm(mm(bigH, old_covar), transpose(bigH)), Qt))
+        print('bigH | old_covar || '+str(bigH.shape)+' | '+str(old_covar.shape))
+        return Matrix(madd(mm(mm(bigH, old_covar), bigH.T), Qt))
 
     def kalman_gain(self, feature_id, bigH, Qinv):
         '''
@@ -683,7 +684,7 @@ class FilterParticle(object):
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
-        return Matrix(mm(mm(old_covar, transpose(bigH)), Qinv))
+        return Matrix(mm(mm(old_covar, bigH.T), Qinv))
 
     def importance_factor(self, bigQ, blob, pseudoblob):
         '''
@@ -697,7 +698,7 @@ class FilterParticle(object):
         v1 = 2*math.pi *magnitude(bigQ)
         v1 = pow(v1, -0.5)
         delz = blob_to_matrix(blob) - blob_to_matrix(pseudoblob)
-        delzt = transpose(delz)
+        delzt = delz.T
         v2 = math.exp(-0.5 * mm(mm(delzt, inverse(bigQ)), delz))
         return v1 * v2
 
