@@ -404,6 +404,14 @@ class prktFeatureTest(unittest.TestCase):
         self.assertIsInstance(feature.identity, np.ndarray)
         self.assertEqual(feature.update_count, 0)
 
+    def test_update_mean(self):
+        # TODO(buckbaskin): I'm not sure how to test this
+        pass
+
+    def test_update_covar(self):
+        # TODO(buckbaskin): I'm not sure how to test this
+        pass
+
 if __name__ == '__main__':
     # import subprocess
     # import time
