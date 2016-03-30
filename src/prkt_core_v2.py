@@ -140,7 +140,7 @@ class FastSLAM(object):
         heading_2 = heading_1+dheading/2+heading_noise
 
         dx = ds*cos(heading_1)
-        dy = ds*cos(heading_1)
+        dy = ds*sin(heading_1)
 
         new_particle.state.pose.pose.position.x += dx
         new_particle.state.pose.pose.position.y += dy
