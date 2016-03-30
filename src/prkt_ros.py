@@ -5,6 +5,7 @@ Create a ROS node that uses the parakeet core to do SLAM
 '''
 
 import rospy
+import sys
 
 from geometry_msgs.msg import Twist
 from matrix import Matrix
@@ -77,7 +78,7 @@ class CamSlam360(object):
         otto.pose.pose.position.x = x
         otto.pose.pose.position.y = y
         otto.pose.pose.orientation = heading_to_quaternion(heading)
-
+        return otto
 
     def measurement_update(self, msg):
         '''
@@ -86,7 +87,10 @@ class CamSlam360(object):
         rospy.loginfo('>>> Measurement Recieved:')
         self.core.cam_cb(msg)
         # self.print_summary()
-        self.odom_pub.publish(self.easy_odom())
+        rospy.loginfo('Measurement Processed <<<')
+        odom = self.easy_odom()
+        self.odom_pub.publish(odom)
+        rospy.loginfo('I made a pub!')
 
     def motion_update(self, msg):
         '''

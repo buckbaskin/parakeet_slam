@@ -12,10 +12,13 @@ node.
 # pylint: disable=no-self-use
 
 import rospy
+
+import copy as copy_module
 import math
+import sys
 # import numpy as np
 
-from copy import deepcopy
+# from copy import deepcopy
 from geometry_msgs.msg import Twist
 from math import sin, cos
 from matrix import inverse, mm, identity, magnitude, madd, msubtract
@@ -108,6 +111,7 @@ class FastSLAM(object):
         Output:
             None
         '''
+        rospy.loginfo('core_v2: motion_update')
 
         dt = rospy.Time.now() - self.last_update
         for i in range(0, len(self.particles)):
@@ -127,7 +131,8 @@ class FastSLAM(object):
         w = twist.angular.z
 
         new_particle = FilterParticle()
-        new_particle.feature_set = deepcopy(particle.feature_set)
+        
+        new_particle.feature_set = copy_module.deepcopy(particle.feature_set)
 
         dheading = twist.angular.z * dt
 
@@ -166,12 +171,12 @@ class FastSLAM(object):
         count = 0
 
         ### resample ###
-
+        
         for particle in self.particles:
             step = step - particle.weight
             while step <= 0.0 and count < len(self.particles):
                 # add it to the list
-                temp_particles.append(deepcopy(particle))
+                temp_particles.append(copy_module.deepcopy(particle))
                 # do I need the deepcopy?
                 #   If the motion model creates a new particle, no
 
@@ -202,7 +207,12 @@ class FastSLAM(object):
         return (x, y, heading,)
 
 class FilterParticle(object):
-    def __init__(self, state=Odometry()):
+    def __init__(self, state=None):
+        if state is None:
+            state = Odometry()
+            state.pose.pose.position.x = 0.0
+            state.pose.pose.position.y = 1.0
+            state.pose.pose.orientation = heading_to_quaternion(math.pi/2.0)
         self.state = state
         self.feature_set = {}
         self.potential_features = {}

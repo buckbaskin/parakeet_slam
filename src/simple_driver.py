@@ -12,7 +12,7 @@ if __name__ == '__main__':
 	rospy.init_node('simple_drive')
 	pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
 
-	rate = rospy.Rate(10)
+	rate = rospy.Rate(2)
 
 	while not rospy.is_shutdown():
 		t = Twist()
