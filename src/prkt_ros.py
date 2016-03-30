@@ -8,7 +8,7 @@ import rospy
 
 from geometry_msgs.msg import Twist
 from matrix import Matrix
-# from nav_msgs.msg import Odometry
+from nav_msgs.msg import Odometry
 from prkt_core_v2 import FastSLAM, Feature
 from utils import quaternion_to_heading, heading_to_quaternion
 from viz_feature_sim.msg import VizScan
@@ -72,6 +72,8 @@ class CamSlam360(object):
     def easy_odom(self):
         x, y, heading = self.core.summary()
         otto = Odometry()
+        otto.header.frame_id = 'odom'
+        otto.header.stamp = rospy.Time.now()
         otto.pose.pose.position.x = x
         otto.pose.pose.position.y = y
         otto.pose.pose.orientation = heading_to_quaternion(heading)

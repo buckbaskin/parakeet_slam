@@ -35,7 +35,7 @@ class FastSLAM(object):
     def __init__(self, preset_features=[]):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
-        self.num_particles = 100
+        self.num_particles = 10
         self.particles = [FilterParticle()] * self.num_particles
         for particle in self.particles:
             particle.load_feature_list(preset_features)
@@ -86,6 +86,9 @@ class FastSLAM(object):
                         # pylint: disable=line-too-long
                         weighty = particle.importance_factor(bigQ, blob, pseudoblob)
                     particle.weight *= weighty
+        
+        rospy.loginfo('core_v2: cam_cb -> pre low_variance_resample')
+
         self.low_variance_resample()
 
 
