@@ -132,20 +132,22 @@ class FastSLAM(object):
 
         new_particle = FilterParticle()
         
-        new_particle.feature_set = copy_module.deepcopy(particle.feature_set)
+        new_particle = copy_module.deepcopy(particle)
 
         dheading = twist.angular.z * dt
 
-        drive_noise = normal(0, abs(.05*v)+abs(.01*w)+.01, 1)
+        drive_noise = normal(0, abs(.005*v)+abs(.001*w)+.0001, 1)
         ds = twist.linear.x * dt + drive_noise
 
         prev_heading = quaternion_to_heading(particle.state.pose.pose.orientation)
 
-        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.01, 1)
+        heading_noise = normal(0, abs(.005*w)+abs(.001*v)+.0001, 1)
         heading_1 = prev_heading+dheading/2+heading_noise
 
-        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.01, 1)
+        heading_noise = normal(0, abs(.005*w)+abs(.001*v)+.0001, 1)
         heading_2 = heading_1+dheading/2+heading_noise
+
+        rospy.loginfo('asdf;kjasdf; '+str(heading_1 ))
 
         dx = ds*cos(heading_1)
         dy = ds*sin(heading_1)

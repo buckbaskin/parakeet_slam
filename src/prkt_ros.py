@@ -96,6 +96,8 @@ class CamSlam360(object):
         # rospy.loginfo('motion_update('+str(msg)+')')
         self.core.motion_update(msg)
         # self.print_summary()
+        odom = self.easy_odom()
+        self.odom_pub.publish(odom)
 
     def print_summary(self):
         '''
