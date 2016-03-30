@@ -405,14 +405,14 @@ class prktFeatureTest(unittest.TestCase):
         self.assertEqual(feature.update_count, 0)
 
 if __name__ == '__main__':
-    # rospy.init_node('test_node_010a0as12asdjkfobu')
-    # rospy.loginfo('sys.version')
-    # import sys
-    # rospy.loginfo(sys.version.split(' ')[0])
+    # import subprocess
+    # import time
+    # roscore = subprocess.Popen('roscore')
+    # time.sleep(1)
 
     import rostest
-    # rostest.rosrun('crispy_parakeet', 'test_prkt_ros_functionality', RosFunctionalityTest)
-    # rostest.rosrun('crispy_parakeet', 'test_prkt_FastSLAM', prktFastSLAMTest)
-    # rostest.rosrun('crispy_parakeet', 'test_prkt_Feature', prktFeatureTest)
+    rostest.rosrun('crispy_parakeet', 'test_prkt_ros_functionality', RosFunctionalityTest)
+    rostest.rosrun('crispy_parakeet', 'test_prkt_FastSLAM', prktFastSLAMTest)
+    rostest.rosrun('crispy_parakeet', 'test_prkt_Feature', prktFeatureTest)
     rostest.rosrun('crispy_parakeet', 'test_prkt_FilterParticle', prktFilterParticleTest)
     
