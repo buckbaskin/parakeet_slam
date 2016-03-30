@@ -10,7 +10,7 @@ from geometry_msgs.msg import Twist
 from matrix import Matrix
 # from nav_msgs.msg import Odometry
 from prkt_core_v2 import FastSLAM, Feature
-from utils import quaternion_to_heading
+from utils import quaternion_to_heading, heading_to_quaternion
 from viz_feature_sim.msg import VizScan
 
 class CamSlam360(object):
@@ -54,6 +54,8 @@ class CamSlam360(object):
         self.cam_sub = rospy.Subscriber('/camera/features', VizScan,
             self.measurement_update)
         self.twist_sub = rospy.Subscriber('/cmd_vel', Twist, self.motion_update)
+
+        self.odom_pub = rospy.Publisher('/slam_estimate', Odometry, queue_size=1)
     
     def run(self):
         if self.core is not None:
@@ -67,6 +69,14 @@ class CamSlam360(object):
         '''
         self.core = FastSLAM(preset_features)
 
+    def easy_odom(self):
+        x, y, heading = self.core.summary()
+        otto = Odometry()
+        otto.pose.pose.position.x = x
+        otto.pose.pose.position.y = y
+        otto.pose.pose.orientation = heading_to_quaternion(heading)
+
+
     def measurement_update(self, msg):
         '''
         Pass along a VizScan message
@@ -74,6 +84,7 @@ class CamSlam360(object):
         rospy.loginfo('>>> Measurement Recieved:')
         self.core.cam_cb(msg)
         # self.print_summary()
+        self.odom_pub.publish(self.easy_odom())
 
     def motion_update(self, msg):
         '''
