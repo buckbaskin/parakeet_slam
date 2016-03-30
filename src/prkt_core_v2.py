@@ -32,10 +32,13 @@ from viz_feature_sim.msg import Blob
 from scipy.stats import multivariate_normal
 
 class FastSLAM(object):
-    def __init__(self):
+    def __init__(self, preset_features=[]):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
-        self.particles = [FilterParticle(), FilterParticle()]
+        self.num_particles = 100
+        self.particles = [FilterParticle()] * self.num_particles
+        for particle in self.particles:
+            particle.load_feature_list(preset_features)
         self.Qt = Matrix([[1, 0], [0, 1]]) # measurement noise?
 
     def cam_cb(self, scan):
@@ -180,6 +183,11 @@ class FilterParticle(object):
 
         self.hypothesis_set = {}
         self.next_id = 1
+
+    def load_feature_list(self, features):
+        for feature in features:
+            self.feature_set[self.next_id] = feature
+            self.next_id += 1
 
     def get_feature_by_id(self, id_):
         '''
@@ -707,6 +715,7 @@ class FilterParticle(object):
 
 class Feature(object):
     def __init__(self, mean=None, covar=None):
+        self.__immutable__=False
         if mean is None:
             mean = Matrix([0, 0, 0, 0, 0])
         if covar is None:
@@ -732,6 +741,8 @@ class Feature(object):
         Output:
             None
         '''
+        if self.__immutable__:
+            return None
         delz = blob_to_matrix(measure) - blob_to_matrix(expected_measure)
         adjust = mm(kalman_gain, delz)
         self.mean = self.mean + adjust
@@ -747,6 +758,8 @@ class Feature(object):
         Output:
             None
         '''
+        if self.__immutable__:
+            return None
         adjust = msubtract(self.identity, mm(kalman_gain, bigH))
         self.covar = mm(adjust, self.covar)
         self.update_count += 1
