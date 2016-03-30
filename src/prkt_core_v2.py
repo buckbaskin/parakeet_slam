@@ -671,8 +671,12 @@ class FilterParticle(object):
             numpy.ndarray
         '''
         old_covar = self.get_feature_by_id(feature_id).covar
-        print('bigH | old_covar || '+str(bigH.shape)+' | '+str(old_covar.shape))
-        return Matrix(madd(mm(mm(bigH, old_covar), bigH.T), Qt))
+        
+        other = mm(mm(bigH, old_covar), bigH.T)
+        print('other | Qt || '+str(other.shape)+' | '+str(Qt.shape))
+
+        compilation = madd(other, Qt)
+        return Matrix(compilation)
 
     def kalman_gain(self, feature_id, bigH, Qinv):
         '''
