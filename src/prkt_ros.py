@@ -9,7 +9,7 @@ import rospy
 from geometry_msgs.msg import Twist
 from matrix import Matrix
 # from nav_msgs.msg import Odometry
-from prkt_core_v2 import FastSLAM
+from prkt_core_v2 import FastSLAM, Feature
 from viz_feature_sim.msg import VizScan
 
 class CamSlam360(object):
@@ -56,6 +56,7 @@ class CamSlam360(object):
     
     def run(self):
         if self.core is not None:
+            rospy.loginfo('Running!')
             rospy.spin()
 
     def initialize_particle_filter(self, preset_features):
