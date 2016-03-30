@@ -327,8 +327,8 @@ class FilterParticle(object):
         Output:
             float
         '''
-        f_x = f_mean[0]
-        f_y = f_mean[1]
+        f_x = float(f_mean[0])
+        f_y = float(f_mean[1])
 
         pse_bearing = math.atan2(f_y-s_y, f_x-s_x)
         if abs(pse_bearing - bearing) > math.pi/2:
@@ -339,12 +339,19 @@ class FilterParticle(object):
 
         # then use multivariate distribution pdf to find the probability of the
         #   closest point being inside that distribution
-        feature_mean = f_mean[0:2]
+        feature_mean = Matrix([f_x, f_y])
+        feature_mean.flatten()
+        
         feature_covar = f_covar[0:2, 0:2]
 
         obs_mean = Matrix([near_x, near_y])
-        return multivariate_normal.pdf(obs_mean, mean=feature_mean,
+        obs_mean.flatten()
+        result = multivariate_normal.pdf(obs_mean, mean=feature_mean,
             cov=feature_covar)
+        if not isinstance(result, float):
+            print('scipy gotcha: '+str(type(result)))
+            print('result: ' + str(result))
+        return result
 
     def closest_point(self, f_x, f_y, s_x, s_y, obs_bearing):
         '''
@@ -372,7 +379,7 @@ class FilterParticle(object):
         scaled_x = scaled_line[0]
         scaled_y = scaled_line[1]
 
-        return (s_x + scaled_x, s_y + scaled_y)
+        return (float(s_x + scaled_x), float(s_y + scaled_y))
 
     def prob_color_match(self, f_mean, f_covar, blob):
         '''
