@@ -50,7 +50,7 @@ class CamSlam360(object):
         self.initialize_particle_filter(features)
 
         # begin ros updating
-        self.cam_sub = rospy.Subscriber('/360cam/features', VizScan,
+        self.cam_sub = rospy.Subscriber('/camera/features', VizScan,
             self.measurement_update)
         self.twist_sub = rospy.Subscriber('/cmd_vel', Twist, self.motion_update)
     
@@ -70,12 +70,32 @@ class CamSlam360(object):
         Pass along a VizScan message
         '''
         self.core.cam_cb(msg)
+        self.print_summary()
 
     def motion_update(self, msg):
         '''
         Pass along a Twist message
         '''
         self.core.motion_update(msg)
+
+    def print_summary(self):
+        '''
+        average x, y, heading
+        '''
+        x_sum = 0.0
+        y_sum = 0.0
+        heading_sum = 0.0
+        count = float(len(self.core.particles))
+
+        for particle in self.core.particles:
+            x += particle.pose.pose.position.x
+            y += particle.pose.pose.position.y
+            heading_sum += quaternion_to_heading(particle.pose.pose.orientation)
+
+        x = x_sum / count
+        y = y_sum / count
+        heading = heading_sum / count
+        rospy.loginfo('prkt_summary: '+str((x, y, heading,)))
 
 
 if __name__ == '__main__':

@@ -115,13 +115,15 @@ class FastSLAM(object):
         # pS      h1        |
         # 0-----------------0
         # |                 h2
+        dt = dt.secs
+
         v = twist.linear.x
         w = twist.angular.z
 
         new_particle = FilterParticle()
         new_particle.feature_set = deepcopy(particle.feature_set)
 
-        dheading = twist.twist.angular.z * dt
+        dheading = twist.angular.z * dt
 
         drive_noise = normal(0, .05*v+.01*w, 1)
         ds = twist.twist.linear.x * dt + drive_noise
