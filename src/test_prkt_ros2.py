@@ -43,6 +43,32 @@ class prktFastSLAMTest(unittest.TestCase):
         self.assertIsInstance(fs.particles, list)
         self.assertIsInstance(fs.Qt, np.ndarray)
 
+    def test_motion_model(self):
+        fs = FastSLAM()
+        fpold = FilterParticle()
+        fpold.state.pose.pose.position.y = 2.0
+        twist = Twist()
+        twist.linear.x = 1
+        dt = rospy.Duration.from_sec(.1)
+        fpnew = fs.motion_model(fpold, twist, dt)
+
+        dy_expected = twist.linear.x * dt.secs
+        dy_measured = fpnew.state.pose.pose.position.y - fpold.state.pose.pose.position.y
+
+        error = abs(dy_measured - dy_expected)
+        self.assertTrue(error < .01)
+
+        twist.linear.x = 2
+        dt = rospy.Duration.from_sec(.1)
+        fpnew = fs.motion_model(fpold, twist, dt)
+
+        dy_expected = twist.linear.x * dt.secs
+        dy_measured = fpnew.state.pose.pose.position.y - fpold.state.pose.pose.position.y
+
+        error = abs(dy_measured - dy_expected)
+        self.assertTrue(error < .02)
+
+
 class prktFilterParticleTest(unittest.TestCase):
     def test_initialization(self):
         particle = FilterParticle()
