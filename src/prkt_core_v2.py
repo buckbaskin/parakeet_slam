@@ -307,6 +307,11 @@ class FilterParticle(object):
         else:
             color_prob = self.prob_color_match(f_mean, f_covar, blob)
 
+        if not isinstance(bearing_prob, float):
+            print('type(bearing_prob) '+str(type(bearing_prob)))
+        if not isinstance(color_prob, float):
+            print('type(color_prob) '+str(type(color_prob)))
+            
         return bearing_prob*color_prob
 
     def prob_position_match(self, f_mean, f_covar, s_x, s_y, bearing):
@@ -327,7 +332,7 @@ class FilterParticle(object):
 
         pse_bearing = math.atan2(f_y-s_y, f_x-s_x)
         if abs(pse_bearing - bearing) > math.pi/2:
-            return 0
+            return 0.0
 
         # find closest point to feature on the line from state, bearing
         near_x, near_y = self.closest_point(f_x, f_y, s_x, s_y, bearing)
