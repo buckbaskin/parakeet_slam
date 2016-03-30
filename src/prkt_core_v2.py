@@ -112,7 +112,7 @@ class FastSLAM(object):
             None
         '''
         # rospy.loginfo('core_v2: motion_update '+str(new_twist))
-
+        rospy.loginfo('time: '+str(rospy.Time.now())+' | '+str(self.last_update))
         dt = rospy.Time.now() - self.last_update
         for i in range(0, len(self.particles)):
             self.particles[i] = self.motion_model(self.particles[i],
@@ -125,8 +125,9 @@ class FastSLAM(object):
         # pS      h1        |
         # 0-----------------0
         # |                 h2
-        dt = dt.secs
-        rospy.loginfo('dt secs: '+str(dt))
+        # dt = dt.secs + dt.nsecs*math.pow(10,-9)
+        rospy.loginfo('dt secs: '+str(dt.to_sec()))
+        dt = dt.to_sec()
 
         v = twist.linear.x
         w = twist.angular.z
@@ -148,12 +149,12 @@ class FastSLAM(object):
         heading_noise = normal(0, abs(.005*w)+abs(.001*v)+.0001, 1)
         heading_2 = heading_1+dheading/2+heading_noise
 
-        rospy.loginfo('asdf;kjasdf; '+str(heading_1 ))
+        # rospy.loginfo('asdf;kjasdf; '+str(heading_1 ))
 
         dx = ds*cos(heading_1)
         dy = ds*sin(heading_1)
 
-        rospy.loginfo('ds delta: '+str(ds - v*dt))
+        # rospy.loginfo('ds delta: '+str(ds - v*dt))
 
         new_particle.state.pose.pose.position.x += dx
         new_particle.state.pose.pose.position.y += dy
