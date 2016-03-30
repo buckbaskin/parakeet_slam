@@ -14,29 +14,38 @@ def motion_model(particle, twist, dt):
     v = twist.linear.x
     w = twist.angular.z
 
-    new_particle = FilterParticle()
+    # new_particle = FilterParticle()
     
     new_particle = copy_module.deepcopy(particle)
+    print(new_particle.state.pose.pose.position.y)
+    print(particle.state.pose.pose.position.y)
 
     dheading = twist.angular.z * dt
 
     drive_noise = normal(0, abs(.005*v)+abs(.001*w)+.0001, 1)
+    print('original    '+str(twist.linear.x * dt))
+    print('drive noise '+str(drive_noise))
     ds = twist.linear.x * dt + drive_noise
+
+    print('and now, ds '+str(ds))
 
     prev_heading = quaternion_to_heading(particle.state.pose.pose.orientation)
 
+    print('prev_heading '+str(prev_heading))
+
     heading_noise = normal(0, abs(.005*w)+abs(.001*v)+.0001, 1)
     heading_1 = prev_heading+dheading/2+heading_noise
+    print('heading_1 '+str(heading_1))
+    print('heading noise '+str(heading_noise))
 
     heading_noise = normal(0, abs(.005*w)+abs(.001*v)+.0001, 1)
     heading_2 = heading_1+dheading/2+heading_noise
 
-    print('asdf;kjasdf; '+str(heading_1 ))
+    print('heading_2 '+str(heading_1))
+    print('heading noise '+str(heading_noise))
 
     dx = ds*cos(heading_1)
     dy = ds*sin(heading_1)
-
-    print('ds delta: '+str(ds - v*dt))
 
     new_particle.state.pose.pose.position.x += dx
     new_particle.state.pose.pose.position.y += dy
@@ -47,16 +56,19 @@ def motion_model(particle, twist, dt):
 
 if __name__ == '__main__':
     fpold = FilterParticle()
+
+    fpold.state.pose.pose.position.y = 2.0
+
     twist = Twist()
     twist.linear.x = 1
     dt = .1
 
-    dx_expected = twist.linear.x * dt
+    dy_expected = twist.linear.x * dt
 
     fpnew = motion_model(fpold, twist, dt)
 
-    dx_measured = fpnew.state.pose.pose.position.x - fpold.state.pose.pose.position.x
+    dy_measured = fpnew.state.pose.pose.position.y - fpold.state.pose.pose.position.y
 
-    print(dx_measured)
-    print(dx_expected)
-    print(dx_expected == dx_measured)
+    print(dy_measured)
+    print(dy_expected)
+    print(dy_expected == dy_measured)
