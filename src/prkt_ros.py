@@ -36,13 +36,13 @@ class CamSlam360(object):
         feature1 = Feature(mean=Matrix([0,0,161,77,137]), covar=preset_covariance)
         feature1.__immutable__ = True
         # blue
-        feature2 = Feature(mean=Matrix([7,0,75,55,230]), covar=preset_covariance)
+        feature2 = Feature(mean=Matrix([10,0,75,55,230]), covar=preset_covariance)
         feature2.__immutable__ = True
         # green
         feature3 = Feature(mean=Matrix([0,15,82,120,68]), covar=preset_covariance)
         feature3.__immutable__ = True
         # pink
-        feature4 = Feature(mean=Matrix([7,15,224,37,192]), covar=preset_covariance)
+        feature4 = Feature(mean=Matrix([10,15,224,37,192]), covar=preset_covariance)
         feature4.__immutable__ = True
 
         features = [feature1, feature2, feature3, feature4]
