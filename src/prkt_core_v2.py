@@ -676,8 +676,6 @@ class FilterParticle(object):
         old_covar = self.get_feature_by_id(feature_id).covar
         
         other = mm(mm(bigH, old_covar), bigH.T)
-        print('other | Qt || '+str(other.shape)+' | '+str(Qt.shape))
-
         compilation = madd(other, Qt)
         return Matrix(compilation)
 

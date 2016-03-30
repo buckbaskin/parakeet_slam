@@ -10,6 +10,7 @@ from geometry_msgs.msg import Twist
 from matrix import Matrix
 # from nav_msgs.msg import Odometry
 from prkt_core_v2 import FastSLAM, Feature
+from utils import quaternion_to_heading
 from viz_feature_sim.msg import VizScan
 
 class CamSlam360(object):
@@ -57,6 +58,7 @@ class CamSlam360(object):
     def run(self):
         if self.core is not None:
             rospy.loginfo('Running!')
+            self.print_summary()
             rospy.spin()
 
     def initialize_particle_filter(self, preset_features):
@@ -77,6 +79,7 @@ class CamSlam360(object):
         Pass along a Twist message
         '''
         self.core.motion_update(msg)
+        self.print_summary()
 
     def print_summary(self):
         '''
@@ -88,8 +91,8 @@ class CamSlam360(object):
         count = float(len(self.core.particles))
 
         for particle in self.core.particles:
-            x += particle.state.pose.pose.position.x
-            y += particle.state.pose.pose.position.y
+            x_sum += particle.state.pose.pose.position.x
+            y_sum += particle.state.pose.pose.position.y
             heading_sum += quaternion_to_heading(particle.state.pose.pose.orientation)
 
         x = x_sum / count
