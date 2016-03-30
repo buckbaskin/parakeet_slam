@@ -126,6 +126,7 @@ class FastSLAM(object):
         # 0-----------------0
         # |                 h2
         dt = dt.secs
+        rospy.loginfo('dt secs: '+str(dt))
 
         v = twist.linear.x
         w = twist.angular.z
