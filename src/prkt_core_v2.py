@@ -90,7 +90,7 @@ class FastSLAM(object):
                         weighty = particle.importance_factor(bigQ, blob, pseudoblob)
                     particle.weight *= weighty
         
-        rospy.loginfo('core_v2: cam_cb -> pre low_variance_resample')
+        # rospy.loginfo('core_v2: cam_cb -> pre low_variance_resample')
 
         self.low_variance_resample()
 
@@ -111,7 +111,7 @@ class FastSLAM(object):
         Output:
             None
         '''
-        rospy.loginfo('core_v2: motion_update')
+        # rospy.loginfo('core_v2: motion_update '+str(new_twist))
 
         dt = rospy.Time.now() - self.last_update
         for i in range(0, len(self.particles)):
@@ -150,6 +150,8 @@ class FastSLAM(object):
         dx = ds*cos(heading_1)
         dy = ds*sin(heading_1)
 
+        rospy.loginfo('ds delta: '+str(ds - v*dt))
+
         new_particle.state.pose.pose.position.x += dx
         new_particle.state.pose.pose.position.y += dy
         # pylint: disable=line-too-long
@@ -161,7 +163,7 @@ class FastSLAM(object):
         '''
         Resample particles based on weights
         '''
-        rospy.loginfo('low_variance_resample()')
+        # rospy.loginfo('low_variance_resample()')
 
         # pylint: disable=line-too-long
         sum_ = reduce(lambda accum, element: accum+element.weight, self.particles, 0.0)

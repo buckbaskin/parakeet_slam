@@ -84,18 +84,16 @@ class CamSlam360(object):
         '''
         Pass along a VizScan message
         '''
-        rospy.loginfo('>>> Measurement Recieved:')
         self.core.cam_cb(msg)
         # self.print_summary()
-        rospy.loginfo('Measurement Processed <<<')
         odom = self.easy_odom()
         self.odom_pub.publish(odom)
-        rospy.loginfo('I made a pub!')
 
     def motion_update(self, msg):
         '''
         Pass along a Twist message
         '''
+        # rospy.loginfo('motion_update('+str(msg)+')')
         self.core.motion_update(msg)
         # self.print_summary()
 
