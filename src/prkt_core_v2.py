@@ -636,8 +636,8 @@ class FilterParticle(object):
         mean_x = state.pose.pose.position.x
         mean_y = state.pose.pose.position.y
         feature_mean = self.get_feature_by_id(feature_id).mean
-        feature_x = feature_mean.x
-        feature_y = feature_mean.y
+        feature_x = feature_mean[0]
+        feature_y = feature_mean[1]
 
         # phi = atan2(dy, dx) - heading
         # q = (feature_x - mean_x)^2 + (feature_y - mean_y)^2
