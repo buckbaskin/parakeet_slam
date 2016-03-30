@@ -375,8 +375,26 @@ class prktFilterParticleTest(unittest.TestCase):
         # pass
 
     def test_generate_measurement(self):
-        # TODO(buckbaskin): start here
-        pass
+        particle = FilterParticle()
+        odom = Odometry()
+        odom.pose.pose.position.x = -1
+        odom.pose.pose.position.y = -1
+
+        particle.state = odom
+
+        feature = Feature()
+        feature.mean[2] = 73
+        feature.mean[3] = 165
+        feature.mean[4] = 255
+
+        particle.feature_set[3] = feature
+
+        blob = particle.generate_measurement(3)
+
+        self.assertEqual(feature.mean[2], blob.color.r)
+        self.assertEqual(feature.mean[3], blob.color.g)
+        self.assertEqual(feature.mean[4], blob.color.b)
+        self.assertEqual(blob.bearing, math.pi/4)
 
 class prktFeatureTest(unittest.TestCase):
     def test_initialization(self):
