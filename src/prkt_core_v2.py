@@ -704,7 +704,7 @@ class FilterParticle(object):
             Blob blob (recieved measurement)
             Blob pseudoblob (estimated measurement)
         '''
-        v1 = 2*math.pi *magnitude(bigQ)
+        v1 = 2.0*math.pi *magnitude(bigQ)
         v1 = pow(v1, -0.5)
         delz = blob_to_matrix(blob) - blob_to_matrix(pseudoblob)
         delzt = delz.T

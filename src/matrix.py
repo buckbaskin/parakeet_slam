@@ -29,7 +29,8 @@ def identity(n):
     return np.identity(n)
 
 def magnitude(matrix):
-    pass
+    # this is an arbitrary choice
+    return np.linalg.norm(matrix)
 
 def blob_to_matrix(blob):
     if isinstance(blob, Blob):
