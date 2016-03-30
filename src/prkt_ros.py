@@ -91,13 +91,14 @@ class CamSlam360(object):
         count = float(len(self.core.particles))
 
         for particle in self.core.particles:
-            x_sum += particle.state.pose.pose.position.x
-            y_sum += particle.state.pose.pose.position.y
-            heading_sum += quaternion_to_heading(particle.state.pose.pose.orientation)
+            x_sum += float(particle.state.pose.pose.position.x)
+            y_sum += float(particle.state.pose.pose.position.y)
+            heading_sum += float(quaternion_to_heading(particle.state.pose.pose.orientation))
 
         x = x_sum / count
         y = y_sum / count
         heading = heading_sum / count
+        rospy.loginfo('types summary: '+str((type(x_sum),type(y_sum),type(x),type(y),)))
         rospy.loginfo('prkt_summary: '+str((x, y, heading,)))
 
 
