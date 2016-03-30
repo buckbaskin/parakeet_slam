@@ -71,35 +71,22 @@ class CamSlam360(object):
         '''
         Pass along a VizScan message
         '''
+        rospy.loginfo('>>> Measurement Recieved:')
         self.core.cam_cb(msg)
-        self.print_summary()
+        # self.print_summary()
 
     def motion_update(self, msg):
         '''
         Pass along a Twist message
         '''
         self.core.motion_update(msg)
-        self.print_summary()
+        # self.print_summary()
 
     def print_summary(self):
         '''
         average x, y, heading
         '''
-        x_sum = 0.0
-        y_sum = 0.0
-        heading_sum = 0.0
-        count = float(len(self.core.particles))
-
-        for particle in self.core.particles:
-            x_sum += float(particle.state.pose.pose.position.x)
-            y_sum += float(particle.state.pose.pose.position.y)
-            heading_sum += float(quaternion_to_heading(particle.state.pose.pose.orientation))
-
-        x = x_sum / count
-        y = y_sum / count
-        heading = heading_sum / count
-        rospy.loginfo('types summary: '+str((type(x_sum),type(y_sum),type(x),type(y),)))
-        rospy.loginfo('prkt_summary: '+str((x, y, heading,)))
+        rospy.loginfo('prkt_summary: '+str(self.core.summary()))
 
 
 if __name__ == '__main__':

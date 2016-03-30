@@ -153,6 +153,8 @@ class FastSLAM(object):
         '''
         Resample particles based on weights
         '''
+        rospy.loginfo('low_variance_resample()')
+
         # pylint: disable=line-too-long
         sum_ = reduce(lambda accum, element: accum+element.weight, self.particles, 0.0)
         range_ = sum_/float(len(self.particles))
@@ -177,6 +179,24 @@ class FastSLAM(object):
 
         self.particles = temp_particles
 
+    def summary(self):
+        '''
+        average x, y, heading
+        '''
+        x_sum = 0.0
+        y_sum = 0.0
+        heading_sum = 0.0
+        count = float(len(self.particles))
+
+        for particle in self.particles:
+            x_sum += float(particle.state.pose.pose.position.x)
+            y_sum += float(particle.state.pose.pose.position.y)
+            heading_sum += float(quaternion_to_heading(particle.state.pose.pose.orientation))
+
+        x = x_sum / count
+        y = y_sum / count
+        heading = heading_sum / count
+        return (x, y, heading,)
 
 class FilterParticle(object):
     def __init__(self, state=Odometry()):
