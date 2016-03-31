@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /aged1/Status1
       Splitter Ratio: 0.5
     Tree Height: 345
   - Class: rviz/Selection
@@ -72,7 +73,7 @@ Visualization Manager:
       Class: rviz/Odometry
       Color: 85; 255; 0
       Enabled: true
-      Keep: 100
+      Keep: 80
       Length: 1
       Name: slam estimate
       Position Tolerance: 0.1
@@ -81,22 +82,32 @@ Visualization Manager:
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 125; 125; 125
-      Enabled: false
+      Enabled: true
       Keep: 100
       Length: 1
       Name: aged
       Position Tolerance: 0.1
       Topic: /aged_particles
-      Value: false
+      Value: true
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 255; 255; 0
-      Enabled: false
+      Enabled: true
       Keep: 100
       Length: 1
       Name: resampled
       Position Tolerance: 0.1
       Topic: /resampled_particles
+      Value: true
+    - Angle Tolerance: 0.1
+      Class: rviz/Odometry
+      Color: 0; 255; 255
+      Enabled: false
+      Keep: 100
+      Length: 1
+      Name: particles_track
+      Position Tolerance: 0.1
+      Topic: /particle_track
       Value: false
   Enabled: true
   Global Options:
@@ -122,22 +133,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.51992
+      Distance: 0.600925
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.904354
-        Y: 0.397489
-        Z: 2.75957
+        X: 0.9944
+        Y: 3.34534
+        Z: 0.708487
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.985398
+      Pitch: 0.465398
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.7904
+      Yaw: 2.2954
     Saved: ~
 Window Geometry:
   Displays:

@@ -28,11 +28,13 @@ class CamSlam360(object):
 
         self.core = None
 
-        preset_covariance = Matrix([[.01,0,0,0,0],
-                                    [0,.01,0,0,0],
-                                    [0,0,.01,0,0],
-                                    [0,0,0,.01,0],
-                                    [0,0,0,0,.01]])
+        self.last_sensor_reading = None
+
+        preset_covariance = Matrix([[0.25,0,0,0,0],
+                                    [0,0.25,0,0,0],
+                                    [0,0,0.25,0,0],
+                                    [0,0,0,0.25,0],
+                                    [0,0,0,0,0.25]])
 
         # purple, origin
         feature1 = Feature(mean=Matrix([0,0,161,77,137]), covar=preset_covariance)
@@ -59,10 +61,28 @@ class CamSlam360(object):
         self.odom_pub = rospy.Publisher('/slam_estimate', Odometry, queue_size=1)
     
     def run(self):
+        joke_rate = rospy.Rate(10)
         if self.core is not None:
             rospy.loginfo('Running!')
             self.print_summary()
-            rospy.spin()
+            while (not rospy.is_shutdown()) and (self.last_sensor_reading is None):
+                rospy.loginfo('waiting on the first sensor data')
+                if (rospy.Time.now().to_sec() > 40):
+                    return 10
+                joke_rate.sleep()
+            while not rospy.is_shutdown():
+                self.loop_over_particles()
+                rospy.loginfo('joke rate stop?')
+                if (rospy.Time.now().to_sec() > 40):
+                    rospy.loginfo('... yes')
+                    return 10
+                joke_rate.sleep()
+            rospy.loginfo('exited main loop. Done!')
+
+    def loop_over_particles(self):
+        rospy.loginfo('main loop passing of sensor data to SLAM')
+        self.core.cam_cb(self)
+        self.odom_pub.publish(self.easy_odom())
 
     def initialize_particle_filter(self, preset_features):
         '''
@@ -82,10 +102,11 @@ class CamSlam360(object):
 
     def measurement_update(self, msg):
         '''
-        Pass along a VizScan message
+        Pass along a VizScan message to the main running loop
         '''
-        self.core.cam_cb(msg)
-        # self.print_summary()
+        # self.core.cam_cb(msg)
+        # rospy.loginfo('new sensor data...')
+        self.last_sensor_reading = msg
         odom = self.easy_odom()
         self.odom_pub.publish(odom)
 
@@ -107,5 +128,5 @@ class CamSlam360(object):
 
 
 if __name__ == '__main__':
-    cs = CamSlam360()
-    cs.run()
+    import profile
+    profile.run('cs = CamSlam360(); cs.run()', '/home/buck/ros_ws/src/crispy_parakeet/callback_analysis.stats')
