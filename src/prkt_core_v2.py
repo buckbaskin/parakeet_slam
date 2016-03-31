@@ -148,15 +148,15 @@ class FastSLAM(object):
 
         dheading = twist.angular.z * dt
 
-        drive_noise = normal(0, abs(.05*v)+abs(.01*w)+.001, 1)
+        drive_noise = normal(0, abs(.025*v)+abs(.005*w)+.0005, 1)
         ds = twist.linear.x * dt + drive_noise
 
         prev_heading = quaternion_to_heading(particle.state.pose.pose.orientation)
 
-        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.001, 1)
+        heading_noise = normal(0, abs(.025*w)+abs(.005*v)+.0005, 1)
         heading_1 = prev_heading+dheading/2+heading_noise
 
-        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.001, 1)
+        heading_noise = normal(0, abs(.025*w)+abs(.005*v)+.0005, 1)
         heading_2 = heading_1+dheading/2+heading_noise
 
         # rospy.loginfo('asdf;kjasdf; '+str(heading_1 ))

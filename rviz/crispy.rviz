@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /aged1/Status1
+        - /resampled1
       Splitter Ratio: 0.5
     Tree Height: 345
   - Class: rviz/Selection
@@ -81,23 +83,23 @@ Visualization Manager:
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 125; 125; 125
-      Enabled: false
+      Enabled: true
       Keep: 100
       Length: 1
       Name: aged
       Position Tolerance: 0.1
       Topic: /aged_particles
-      Value: false
+      Value: true
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 255; 255; 0
-      Enabled: false
-      Keep: 100
+      Enabled: true
+      Keep: 50
       Length: 1
       Name: resampled
       Position Tolerance: 0.1
       Topic: /resampled_particles
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -122,16 +124,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.51992
+      Distance: 9.79847
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.904354
-        Y: 0.397489
-        Z: 2.75957
+        X: 2.06832
+        Y: 0.208393
+        Z: 2.30578
       Name: Current View
       Near Clip Distance: 0.01
       Pitch: 0.985398

@@ -107,5 +107,5 @@ class CamSlam360(object):
 
 
 if __name__ == '__main__':
-    cs = CamSlam360()
-    cs.run()
+    import profile
+    profile.run('cs = CamSlam360(); cs.run()', '/home/buck/ros_ws/src/crispy_parakeet/callback_analysis.stats')

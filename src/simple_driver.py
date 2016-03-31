@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	while not rospy.is_shutdown():
 		t = Twist()
 		t.linear.x = 1.0
-		t.angular.z = -t.linear.x/3.0
+		t.angular.z = t.linear.x/3.0
 		# rospy.loginfo('pub pub pub')
 		pub.publish(t)
 		# rospy.loginfo('pub pub')
