@@ -64,13 +64,13 @@ class FastSLAM(object):
 
         count = 0
 
-        for particle in self.particles:
+        for i in range(0, len(self.particles)):
             if rospy.is_shutdown():
                 break
             count += 1
             if (count % 10) == 0:
                 rospy.loginfo('particle: %d' % count)
-            particle.weight = 1
+            self.particles[i].weight = 1
 
             if count == 1:
                 rospy.loginfo('<<< start motion_update %d' % count)
@@ -81,7 +81,7 @@ class FastSLAM(object):
 
             scan = ros_view.last_sensor_reading
 
-            correspondence = particle.match_features_to_scan(scan)
+            correspondence = self.particles[i].match_features_to_scan(scan)
             if (count % 10) == 0:
                 rospy.loginfo('<<< end correspondence %d' % count)
             
@@ -91,41 +91,50 @@ class FastSLAM(object):
                 blob = pair[1]
                 if pair[0] == 0:
                     # unseen feature observed
-                    particle.add_hypothesis(particle.state, blob)
-                    particle.weight *= particle.no_match_weight()
+                    self.particles[i].add_hypothesis(self.particles[i].state, blob)
+                    self.particles[i].weight *= self.particles[i].no_match_weight()
                 else:
                     # update feature
-                    pseudoblob = particle.generate_measurement(pair[0])
-                    bigH = particle.measurement_jacobian(pair[0])
+                    pseudoblob = self.particles[i].generate_measurement(pair[0])
+                    bigH = self.particles[i].measurement_jacobian(pair[0])
                     # pylint: disable=line-too-long
-                    bigQ = particle.measurement_covariance(bigH, pair[0], self.Qt)
+                    bigQ = self.particles[i].measurement_covariance(bigH, pair[0], self.Qt)
                     bigQinv = inverse(bigQ)
-                    bigK = particle.kalman_gain(pair[0], bigH, bigQinv)
+                    bigK = self.particles[i].kalman_gain(pair[0], bigH, bigQinv)
 
-                    (particle.get_feature_by_id(pair[0])
+                    (self.particles[i].get_feature_by_id(pair[0])
                         .update_mean(bigK, blob, pseudoblob))
-                    (particle.get_feature_by_id(pair[0])
+                    (self.particles[i].get_feature_by_id(pair[0])
                         .update_covar(bigK, bigH))
                     if pair[0] < 0:
                         # potential new feature seen
                         # update feature ^ but update as if the feature not seen
-                        weighty = particle.no_match_weight()
+                        weighty = self.particles[i].no_match_weight()
                         # possibly add the feature to the full feature set
-                        if particle.get_feature_by_id(pair[0]).update_count > 5:
-                            # the particle has been seen 3 times
-                            feature = particle.potential_features[pair[0]]
-                            particle.feature_set[-pair[0]] = feature
-                            del particle.potential_features[pair[0]]
+                        if self.particles[i].get_feature_by_id(pair[0]).update_count > 5:
+                            # the self.particles[i] has been seen 3 times
+                            feature = self.particles[i].potential_features[pair[0]]
+                            self.particles[i].feature_set[-pair[0]] = feature
+                            del self.particles[i].potential_features[pair[0]]
                     else:
                         # feature seen
                         # update feature and robot pose weight
                         # pylint: disable=line-too-long
-                        weighty = particle.importance_factor(bigQ, blob, pseudoblob)
-                    particle.weight *= weighty
-                    particle.state.header.frame_id = 'odom'
-                    self.particle_track_pub.publish(particle.state)
+                        weighty = self.particles[i].importance_factor(bigQ, blob, pseudoblob)
+                    self.particles[i].weight *= weighty
+            rospy.loginfo('%d | %f' % ((count-1), self.particles[i].weight))
+            self.particles[i].state.header.frame_id = 'odom'
+            self.particle_track_pub.publish(self.particles[i].state)
+            
+            if abs(self.particles[i].weight - 1) < .001:
+                rospy.loginfo('suspicious 1: %d' % len(correspondence))
+            else:
+                rospy.loginfo('not suspicious weight: %f' % (self.particles[i].weight,))
             if (count % 10) == 0:
                 rospy.loginfo('<<< end correspondence loop %d' % count)
+
+        for i in range(0, len(self.particles)):
+            rospy.loginfo('%d | %f' % (i, self.particles[i].weight))
 
         rospy.loginfo('core_v2: cam_cb -> post low_variance_resample')
         self.low_variance_resample()
@@ -205,15 +214,23 @@ class FastSLAM(object):
         '''
         Resample particles based on weights
         '''
-        # rospy.loginfo('low_variance_resample()')
+        rospy.loginfo('low_variance_resample()')
 
-        # pylint: disable=line-too-long
-        sum_ = reduce(lambda accum, element: accum+element.weight, self.particles, 0.0)
+        sum_ = 0
+        max_ = 0
+        for element in self.particles:
+            # rospy.loginfo(element.weight)
+            sum_ += element.weight
+            if element.weight > max_:
+                max_ = element.weight
+
+        rospy.loginfo('summmm_ %f %f' % (sum_, max_,))
         range_ = sum_/float(len(self.particles))
         step = random()*range_
         temp_particles = []
         count = 0
 
+        rospy.loginfo('reshample')
         ### resample ###
         
         for particle in self.particles:
