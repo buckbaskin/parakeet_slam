@@ -18,7 +18,7 @@ import math
 import sys
 # import numpy as np
 
-# from copy import deepcopy
+from copy import deepcopy
 from geometry_msgs.msg import Twist
 from math import sin, cos
 from matrix import inverse, mm, identity, magnitude, madd, msubtract
@@ -39,7 +39,11 @@ class FastSLAM(object):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
         self.num_particles = 50
-        self.particles = [FilterParticle()] * self.num_particles
+        self.particles = [None]*self.num_particles
+        for i in range(0,self.num_particles):
+            self.particles[i] = FilterParticle()
+        rospy.loginfo('len of preset_features = %d' % len(preset_features))
+        
         for particle in self.particles:
             if rospy.is_shutdown():
                 break
