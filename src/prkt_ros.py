@@ -61,19 +61,23 @@ class CamSlam360(object):
         self.odom_pub = rospy.Publisher('/slam_estimate', Odometry, queue_size=1)
     
     def run(self):
-        joke_rate = Rate(10)
+        joke_rate = rospy.Rate(10)
         if self.core is not None:
             rospy.loginfo('Running!')
             self.print_summary()
+            while (not rospy.is_shutdown()) and (self.last_sensor_reading is None):
+                rospy.loginfo('waiting on the first sensor data')
+                joke_rate.sleep()
             while not rospy.is_shutdown():
                 self.loop_over_particles()
+                rospy.loginfo('joke rate stop?')
                 joke_rate.sleep()
             rospy.loginfo('exited main loop. Done!')
 
     def loop_over_particles(self):
         rospy.loginfo('main loop passing of sensor data to SLAM')
         self.core.cam_cb(self.last_sensor_reading)
-        self.odom_pub.publish(easy_odom())
+        self.odom_pub.publish(self.easy_odom())
 
     def initialize_particle_filter(self, preset_features):
         '''

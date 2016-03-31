@@ -94,7 +94,7 @@ Visualization Manager:
       Class: rviz/Odometry
       Color: 255; 255; 0
       Enabled: true
-      Keep: 50
+      Keep: 100
       Length: 1
       Name: resampled
       Position Tolerance: 0.1
@@ -124,16 +124,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.79847
+      Distance: 13.8453
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 2.06832
-        Y: 0.208393
-        Z: 2.30578
+        X: 1.99345
+        Y: 4.1695
+        Z: 0.47467
       Name: Current View
       Near Clip Distance: 0.01
       Pitch: 0.985398
