@@ -122,7 +122,7 @@ class FastSLAM(object):
                         # pylint: disable=line-too-long
                         weighty = self.particles[i].importance_factor(bigQ, blob, pseudoblob)
                     self.particles[i].weight *= weighty
-            rospy.loginfo('%d | %f' % ((count-1), self.particles[i].weight))
+            
             self.particles[i].state.header.frame_id = 'odom'
             self.particle_track_pub.publish(self.particles[i].state)
             
@@ -132,9 +132,6 @@ class FastSLAM(object):
                 rospy.loginfo('not suspicious weight: %f' % (self.particles[i].weight,))
             if (count % 10) == 0:
                 rospy.loginfo('<<< end correspondence loop %d' % count)
-
-        for i in range(0, len(self.particles)):
-            rospy.loginfo('%d | %f' % (i, self.particles[i].weight))
 
         rospy.loginfo('core_v2: cam_cb -> post low_variance_resample')
         self.low_variance_resample()
@@ -185,7 +182,7 @@ class FastSLAM(object):
 
         dheading = twist.angular.z * dt
 
-        drive_noise = normal(0, abs(.025*v)+abs(.005*w)+.0005, 1)
+        drive_noise = normal(0, abs(.05*v)+abs(.005*w)+.0005, 1)
         ds = twist.linear.x * dt + drive_noise
 
         prev_heading = quaternion_to_heading(particle.state.pose.pose.orientation)

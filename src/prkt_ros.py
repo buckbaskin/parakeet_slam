@@ -74,7 +74,7 @@ class CamSlam360(object):
                 self.loop_over_particles()
                 rospy.loginfo('joke rate stop?')
                 if (rospy.Time.now().to_sec() > 40):
-                    rospy.loginfo('... yes')
+                    # rospy.loginfo('... yes')
                     return 10
                 joke_rate.sleep()
             rospy.loginfo('exited main loop. Done!')
