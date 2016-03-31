@@ -199,17 +199,20 @@ class FastSLAM(object):
         '''
         x_sum = 0.0
         y_sum = 0.0
-        heading_sum = 0.0
+        heading_dx = 0.0
+        heading_dy = 0.0
         count = float(len(self.particles))
 
         for particle in self.particles:
             x_sum += float(particle.state.pose.pose.position.x)
             y_sum += float(particle.state.pose.pose.position.y)
-            heading_sum += float(quaternion_to_heading(particle.state.pose.pose.orientation))
+            heading_t = float(quaternion_to_heading(particle.state.pose.pose.orientation))
+            heading_dx += cos(heading_t)
+            heading_dy += sin(heading_t)
 
         x = x_sum / count
         y = y_sum / count
-        heading = heading_sum / count
+        heading = math.atan2(heading_dy, heading_dx)
         return (x, y, heading,)
 
 class FilterParticle(object):
@@ -217,8 +220,8 @@ class FilterParticle(object):
         if state is None:
             state = Odometry()
             state.pose.pose.position.x = 0.0
-            state.pose.pose.position.y = 1.0
-            state.pose.pose.orientation = heading_to_quaternion(math.pi/2.0)
+            state.pose.pose.position.y = 0.0
+            state.pose.pose.orientation = heading_to_quaternion(0.0)
         self.state = state
         self.feature_set = {}
         self.potential_features = {}
