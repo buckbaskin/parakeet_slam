@@ -38,7 +38,7 @@ class FastSLAM(object):
     def __init__(self, preset_features=[]):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
-        self.num_particles = 10
+        self.num_particles = 100
         self.particles = [FilterParticle()] * self.num_particles
         for particle in self.particles:
             particle.load_feature_list(preset_features)
@@ -47,11 +47,22 @@ class FastSLAM(object):
                           [0, 0, 1, 0],
                           [0, 0, 0, 1]]) # measurement noise
 
+        self.aged_particles_pub = rospy.Publisher('/aged_particles', Odometry, queue_size=1)
+        self.resampled_particles_pub = rospy.Publisher('/resampled_particles', Odometry, queue_size=1)
+
     def cam_cb(self, scan):
         # motion update all particles
+        rospy.loginfo('cam_cb')
         self.motion_update(self.last_control)
 
+        rospy.loginfo('core_v2: cam_cb -> pre low_variance_resample')
+
+        count = 0
+
         for particle in self.particles:
+            count += 1
+            if (count % 10) == 0:
+                rospy.loginfo('particle: %d' % count)
             particle.weight = 1
             correspondence = particle.match_features_to_scan(scan)
             for pair in correspondence:
@@ -90,8 +101,7 @@ class FastSLAM(object):
                         weighty = particle.importance_factor(bigQ, blob, pseudoblob)
                     particle.weight *= weighty
         
-        # rospy.loginfo('core_v2: cam_cb -> pre low_variance_resample')
-
+        rospy.loginfo('core_v2: cam_cb -> post low_variance_resample')
         self.low_variance_resample()
 
 
@@ -112,9 +122,9 @@ class FastSLAM(object):
             None
         '''
         # rospy.loginfo('core_v2: motion_update '+str(new_twist))
-        rospy.loginfo('time: '+str(rospy.Time.now())+' | '+str(self.last_update))
+        # rospy.loginfo('time: '+str(rospy.Time.now())+' | '+str(self.last_update))
         dt = rospy.Time.now() - self.last_update
-        for i in range(0, len(self.particles)):
+        for i in xrange(0, len(self.particles)):
             self.particles[i] = self.motion_model(self.particles[i],
                 self.last_control, dt)
 
@@ -126,7 +136,7 @@ class FastSLAM(object):
         # 0-----------------0
         # |                 h2
         # dt = dt.secs + dt.nsecs*math.pow(10,-9)
-        rospy.loginfo('dt secs: '+str(dt.to_sec()))
+        # rospy.loginfo('dt secs: '+str(dt.to_sec()))
         dt = dt.to_sec()
 
         v = twist.linear.x
@@ -138,15 +148,15 @@ class FastSLAM(object):
 
         dheading = twist.angular.z * dt
 
-        drive_noise = normal(0, abs(.005*v)+abs(.001*w)+.0001, 1)
+        drive_noise = normal(0, abs(.05*v)+abs(.01*w)+.001, 1)
         ds = twist.linear.x * dt + drive_noise
 
         prev_heading = quaternion_to_heading(particle.state.pose.pose.orientation)
 
-        heading_noise = normal(0, abs(.005*w)+abs(.001*v)+.0001, 1)
+        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.001, 1)
         heading_1 = prev_heading+dheading/2+heading_noise
 
-        heading_noise = normal(0, abs(.005*w)+abs(.001*v)+.0001, 1)
+        heading_noise = normal(0, abs(.05*w)+abs(.01*v)+.001, 1)
         heading_2 = heading_1+dheading/2+heading_noise
 
         # rospy.loginfo('asdf;kjasdf; '+str(heading_1 ))
@@ -179,9 +189,13 @@ class FastSLAM(object):
         ### resample ###
         
         for particle in self.particles:
+            particle.state.header.frame_id = 'odom'
+            self.aged_particles_pub.publish(particle.state)
             step = step - particle.weight
             while step <= 0.0 and count < len(self.particles):
                 # add it to the list
+                particle.state.header.frame_id = 'odom'
+                self.resampled_particles_pub.publish(particle.state)
                 temp_particles.append(copy_module.deepcopy(particle))
                 # do I need the deepcopy?
                 #   If the motion model creates a new particle, no
@@ -357,9 +371,9 @@ class FilterParticle(object):
             color_prob = 500.0*self.prob_color_match(f_mean, f_covar, blob)
 
         if not isinstance(bearing_prob, float):
-            print('type(bearing_prob) '+str(type(bearing_prob)))
+            rospy.loginfo('type(bearing_prob) %s' % str(type(bearing_prob)))
         if not isinstance(color_prob, float):
-            print('type(color_prob) '+str(type(color_prob)))
+            rospy.loginfo('type(color_prob) %s' % str(type(color_prob)))
             
         return bearing_prob*color_prob
 
@@ -398,8 +412,8 @@ class FilterParticle(object):
         result = multivariate_normal.pdf(obs_mean, mean=feature_mean,
             cov=feature_covar)
         if not isinstance(result, float):
-            print('scipy gotcha: '+str(type(result)))
-            print('result: ' + str(result))
+            rospy.loginfo('scipy gotcha: %s' % str(type(result)))
+            rospy.loginfo('result: %s' % str(result))
         return result
 
     def closest_point(self, f_x, f_y, s_x, s_y, obs_bearing):
