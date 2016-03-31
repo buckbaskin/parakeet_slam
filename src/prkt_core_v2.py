@@ -334,14 +334,9 @@ class FilterParticle(object):
             if rospy.is_shutdown():
                 break
             count += 1
-            rospy.loginfo('start johndoe %d' % count)
+            # rospy.loginfo('start johndoe %d' % count)
             johndoe.append((self.match_one(self.state, blob), blob))
-            rospy.loginfo('end   johndoe %d' % count)
-
-            if count >= 2:
-                import sys
-                sys.exit(0)
-        rospy.loginfo('johndoe... %s' % str(johndoe))
+            # rospy.loginfo('end   johndoe %d' % count)
         return johndoe
 
     def match_one(self, state, blob):
@@ -367,7 +362,7 @@ class FilterParticle(object):
             if rospy.is_shutdown():
                 break
             new_match = self.probability_of_match(state, blob, feature)
-            rospy.loginfo('%d new match %f' % (id_, new_match))
+            # rospy.loginfo('%d new match %f' % (id_, new_match))
             if new_match > max_match:
                 max_match = new_match
                 max_match_id = id_
@@ -397,12 +392,14 @@ class FilterParticle(object):
         s_y = state.pose.pose.position.y
         s_heading = quaternion_to_heading(state.pose.pose.orientation)
 
+        # rospy.loginfo('atan2(%f - %f, %f - %f) - %f' % (f_y, s_y, f_x, s_x, s_heading,))
+
         expected_bearing = math.atan2(f_y-s_y, f_x-s_x) - s_heading
         observed_bearing = blob.bearing
 
-        rospy.loginfo('%f vs. %f' % (expected_bearing, observed_bearing,))
-        rospy.loginfo('feature mean: %s' % str(f_mean))
-        rospy.loginfo('state (%f, %f, %f,) and blob %f, size(%f)' % (s_x, s_y, s_heading, observed_bearing, blob.size))
+        # rospy.loginfo('%f vs. %f' % (expected_bearing, observed_bearing,))
+        # rospy.loginfo('feature mean: %s' % str(f_mean))
+        # rospy.loginfo('state (%f, %f, %f,) and blob %f, size(%f)' % (s_x, s_y, s_heading, observed_bearing, blob.size))
 
         del_bearing = observed_bearing - expected_bearing
         # while(del_bearing > math.pi*2):
@@ -423,20 +420,21 @@ class FilterParticle(object):
         #   less likely to hit 0 unless one of them really is 0
 
         if abs(del_bearing) > 0.5:
-            rospy.loginfo('color distance was ... %f' % color_distance)
-            rospy.loginfo('bearing exit')
+            # rospy.loginfo('color distance was ... %f' % color_distance)
+            # rospy.loginfo('bearing exit')
             return 0.0
         else:
             # pylint: disable=line-too-long
             bearing_prob = 500.0*self.prob_position_match(f_mean, f_covar, s_x, s_y, observed_bearing)
 
         if abs(color_distance) > 300:
-            rospy.loginfo('color exit')
+            # rospy.loginfo('%d %d %d | %d %d %d' % (blob.color.r, blob.color.g, blob.color.b, f_mean[2], f_mean[3], f_mean[4]))
+            # rospy.loginfo('color exit')
             return 0.0
         else:
             color_prob = 500.0*self.prob_color_match(f_mean, f_covar, blob)
-            rospy.loginfo('bp: %f' % bearing_prob)
-            rospy.loginfo('cp: %f' % color_prob)
+            # rospy.loginfo('bp: %f' % bearing_prob)
+            # rospy.loginfo('cp: %f' % color_prob)
 
         if not isinstance(bearing_prob, float):
             rospy.loginfo('type(bearing_prob) %s' % str(type(bearing_prob)))
