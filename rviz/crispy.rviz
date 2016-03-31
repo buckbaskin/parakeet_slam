@@ -73,7 +73,7 @@ Visualization Manager:
       Class: rviz/Odometry
       Color: 85; 255; 0
       Enabled: true
-      Keep: 100
+      Keep: 80
       Length: 1
       Name: slam estimate
       Position Tolerance: 0.1
@@ -102,13 +102,13 @@ Visualization Manager:
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 0; 255; 255
-      Enabled: true
+      Enabled: false
       Keep: 100
       Length: 1
       Name: particles_track
       Position Tolerance: 0.1
       Topic: /particle_track
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -133,16 +133,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 17.4971
+      Distance: 16.0501
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -3.10243
-        Y: 1.44051
-        Z: -2.83559
+        X: 0.961533
+        Y: 2.8536
+        Z: 1.76905
       Name: Current View
       Near Clip Distance: 0.01
       Pitch: 0.985398

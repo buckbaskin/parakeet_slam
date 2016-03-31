@@ -334,9 +334,9 @@ class FilterParticle(object):
             rospy.loginfo('start johndoe %d' % count)
             johndoe.append((self.match_one(self.state, blob), blob))
             rospy.loginfo('end   johndoe %d' % count)
+            import sys
+            sys.exit(0)
         rospy.loginfo('johndoe... %s' % str(johndoe))
-        import sys
-        sys.exit(0)
         return johndoe
 
     def match_one(self, state, blob):
@@ -353,7 +353,11 @@ class FilterParticle(object):
         '''
         # create a list of existing features as (id, feature) pairs
         features = list(self.feature_set.items())
+        rospy.loginfo(len(features))
         features.extend(list(self.potential_features.items()))
+        rospy.loginfo(len(features))
+        import sys
+        sys.exit(0)
 
         max_match = 0.0
         max_match_id = 0
@@ -362,6 +366,7 @@ class FilterParticle(object):
             if rospy.is_shutdown():
                 break
             new_match = self.probability_of_match(state, blob, feature)
+            rospy.loginfo('%d new match %f' % (id_, new_match))
             if new_match > max_match:
                 max_match = new_match
                 max_match_id = id_
