@@ -38,9 +38,11 @@ class FastSLAM(object):
     def __init__(self, preset_features=[]):
         self.last_control = Twist()
         self.last_update = rospy.Time.now()
-        self.num_particles = 100
+        self.num_particles = 50
         self.particles = [FilterParticle()] * self.num_particles
         for particle in self.particles:
+            if rospy.is_shutdown():
+                break
             particle.load_feature_list(preset_features)
         self.Qt = Matrix([[1, 0, 0, 0], 
                           [0, 1, 0, 0],
@@ -49,23 +51,43 @@ class FastSLAM(object):
 
         self.aged_particles_pub = rospy.Publisher('/aged_particles', Odometry, queue_size=1)
         self.resampled_particles_pub = rospy.Publisher('/resampled_particles', Odometry, queue_size=1)
+        self.particle_track_pub = rospy.Publisher('/particle_track', Odometry, queue_size=1)
 
-    def cam_cb(self, scan):
+    def cam_cb(self, ros_view):
         # motion update all particles
-        rospy.loginfo('cam_cb')
-        self.motion_update(self.last_control)
 
+        rospy.loginfo('rolling cam_cb')
         rospy.loginfo('core_v2: cam_cb -> pre low_variance_resample')
 
         count = 0
 
         for particle in self.particles:
+            if rospy.is_shutdown():
+                break
             count += 1
-            if (count % 10) == 0:
+            if (count % 1) == 0:
                 rospy.loginfo('particle: %d' % count)
             particle.weight = 1
+
+            if (count % 20) == 0:
+                if (count % 1) == 0:
+                    rospy.loginfo('<<< start motion_update %d' % count)
+                self.motion_update(self.last_control)
+            else:
+                rospy.loginfo('skipped motion update')
+
+            if (count % 1) == 0:
+                rospy.loginfo('<<< start correspondence %d' % count)
+
+            scan = ros_view.last_sensor_reading
+
             correspondence = particle.match_features_to_scan(scan)
+            if (count % 1) == 0:
+                rospy.loginfo('<<< end correspondence %d' % count)
+            
             for pair in correspondence:
+                if rospy.is_shutdown():
+                    break
                 blob = pair[1]
                 if pair[0] == 0:
                     # unseen feature observed
@@ -100,7 +122,11 @@ class FastSLAM(object):
                         # pylint: disable=line-too-long
                         weighty = particle.importance_factor(bigQ, blob, pseudoblob)
                     particle.weight *= weighty
-        
+                    particle.state.header.frame_id = 'odom'
+                    self.particle_track_pub.publish(particle.state)
+            if (count % 1) == 0:
+                rospy.loginfo('<<< end correspondence loop %d' % count)
+
         rospy.loginfo('core_v2: cam_cb -> post low_variance_resample')
         self.low_variance_resample()
 
@@ -125,6 +151,8 @@ class FastSLAM(object):
         # rospy.loginfo('time: '+str(rospy.Time.now())+' | '+str(self.last_update))
         dt = rospy.Time.now() - self.last_update
         for i in xrange(0, len(self.particles)):
+            if rospy.is_shutdown():
+                break
             self.particles[i] = self.motion_model(self.particles[i],
                 self.last_control, dt)
 
@@ -189,6 +217,8 @@ class FastSLAM(object):
         ### resample ###
         
         for particle in self.particles:
+            if rospy.is_shutdown():
+                break
             particle.state.header.frame_id = 'odom'
             self.aged_particles_pub.publish(particle.state)
             step = step - particle.weight
@@ -218,6 +248,8 @@ class FastSLAM(object):
         count = float(len(self.particles))
 
         for particle in self.particles:
+            if rospy.is_shutdown():
+                break
             x_sum += float(particle.state.pose.pose.position.x)
             y_sum += float(particle.state.pose.pose.position.y)
             heading_t = float(quaternion_to_heading(particle.state.pose.pose.orientation))
@@ -247,6 +279,8 @@ class FilterParticle(object):
 
     def load_feature_list(self, features):
         for feature in features:
+            if rospy.is_shutdown():
+                break
             self.feature_set[self.next_id] = feature
             self.next_id += 1
 
@@ -293,6 +327,8 @@ class FilterParticle(object):
         # Version 1
         johndoe = []
         for blob in scan.observes:
+            if rospy.is_shutdown():
+                break
             johndoe.append((self.match_one(self.state, blob), blob))
         return johndoe
 
@@ -316,6 +352,8 @@ class FilterParticle(object):
         max_match_id = 0
 
         for id_, feature in features:
+            if rospy.is_shutdown():
+                break
             new_match = self.probability_of_match(state, blob, feature)
             if new_match > max_match:
                 max_match = new_match
@@ -500,6 +538,8 @@ class FilterParticle(object):
         min_dist = float('inf')
 
         for id_, reading in self.potential_features.iteritems():
+            if rospy.is_shutdown():
+                break
             reading_state = reading[0]
             reading_blob = reading[1]
             d = self.reading_distance_function(reading_state, reading_blob,
@@ -703,16 +743,20 @@ class FilterParticle(object):
 
         # phi = atan2(dy, dx) - heading
         # q = (feature_x - mean_x)^2 + (feature_y - mean_y)^2
-        q = pow(feature_x - mean_x, 2) + pow(feature_y - mean_y, 2)
+        q = float(pow(feature_x - mean_x, 2) + pow(feature_y - mean_y, 2))
 
         # d_phi/d_x = (feature_y - mean_y) / q
-        d_bear_d_x = (feature_y - mean_y) / q
+        try:
+            d_bear_d_x = float(feature_y - mean_y) / q
+        except ZeroDivisionError:
+            d_bear_d_x = 0.0
 
         # d_phi/d_y = (feature_x - mean_x) / q
-        d_bear_d_y = (feature_x - mean_x) / q
+        try:
+            d_bear_d_y = float(feature_x - mean_x) / q
+        except ZeroDivisionError:
+            d_bear_d_y = 0.0
 
-
-        # TODO(buckbaskin): start here
         return Matrix([[d_bear_d_x, d_bear_d_y, 0.0, 0.0, 0.0],
                          [0.0,      0.0,        1.0, 0.0, 0.0],
                          [0.0,      0.0,        0.0, 1.0, 0.0],
@@ -786,7 +830,7 @@ class FilterParticle(object):
 
         bobby = Blob()
         bobby.bearing = math.atan2(f_y-s_y, f_x-s_x)
-        bobby.size = 1/math.sqrt(math.pow(f_x-s_x, 2)+math.pow(f_y-s_y, 2))
+        # bobby.size = 1/math.sqrt(math.pow(f_x-s_x, 2)+math.pow(f_y-s_y, 2))
         bobby.color.r = feature.mean[2]
         bobby.color.g = feature.mean[3]
         bobby.color.b = feature.mean[4]

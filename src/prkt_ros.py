@@ -67,16 +67,21 @@ class CamSlam360(object):
             self.print_summary()
             while (not rospy.is_shutdown()) and (self.last_sensor_reading is None):
                 rospy.loginfo('waiting on the first sensor data')
+                if (rospy.Time.now().to_sec() > 40):
+                    return 10
                 joke_rate.sleep()
             while not rospy.is_shutdown():
                 self.loop_over_particles()
                 rospy.loginfo('joke rate stop?')
+                if (rospy.Time.now().to_sec() > 40):
+                    rospy.loginfo('... yes')
+                    return 10
                 joke_rate.sleep()
             rospy.loginfo('exited main loop. Done!')
 
     def loop_over_particles(self):
         rospy.loginfo('main loop passing of sensor data to SLAM')
-        self.core.cam_cb(self.last_sensor_reading)
+        self.core.cam_cb(self)
         self.odom_pub.publish(self.easy_odom())
 
     def initialize_particle_filter(self, preset_features):
@@ -100,7 +105,7 @@ class CamSlam360(object):
         Pass along a VizScan message to the main running loop
         '''
         # self.core.cam_cb(msg)
-        rospy.loginfo('new sensor data...')
+        # rospy.loginfo('new sensor data...')
         self.last_sensor_reading = msg
         odom = self.easy_odom()
         self.odom_pub.publish(odom)
