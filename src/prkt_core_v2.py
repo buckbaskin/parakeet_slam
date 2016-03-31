@@ -44,10 +44,10 @@ class FastSLAM(object):
             if rospy.is_shutdown():
                 break
             particle.load_feature_list(preset_features)
-        self.Qt = Matrix([[1, 0, 0, 0], 
-                          [0, 1, 0, 0],
-                          [0, 0, 1, 0],
-                          [0, 0, 0, 1]]) # measurement noise
+        self.Qt = Matrix([[.1, 0, 0, 0], 
+                          [0, .1, 0, 0],
+                          [0, 0, .1, 0],
+                          [0, 0, 0, .1]]) # measurement noise
 
         self.aged_particles_pub = rospy.Publisher('/aged_particles', Odometry, queue_size=1)
         self.resampled_particles_pub = rospy.Publisher('/resampled_particles', Odometry, queue_size=1)
@@ -326,10 +326,17 @@ class FilterParticle(object):
         '''
         # Version 1
         johndoe = []
+        count = 0
         for blob in scan.observes:
             if rospy.is_shutdown():
                 break
+            count += 1
+            rospy.loginfo('start johndoe %d' % count)
             johndoe.append((self.match_one(self.state, blob), blob))
+            rospy.loginfo('end   johndoe %d' % count)
+        rospy.loginfo('johndoe... %s' % str(johndoe))
+        import sys
+        sys.exit(0)
         return johndoe
 
     def match_one(self, state, blob):
