@@ -68,24 +68,21 @@ class FastSLAM(object):
             if rospy.is_shutdown():
                 break
             count += 1
-            if (count % 1) == 0:
+            if (count % 10) == 0:
                 rospy.loginfo('particle: %d' % count)
             particle.weight = 1
 
-            if (count % 20) == 0:
-                if (count % 1) == 0:
-                    rospy.loginfo('<<< start motion_update %d' % count)
+            if count == 1:
+                rospy.loginfo('<<< start motion_update %d' % count)
                 self.motion_update(self.last_control)
-            else:
-                rospy.loginfo('skipped motion update')
 
-            if (count % 1) == 0:
+            if (count % 10) == 0:
                 rospy.loginfo('<<< start correspondence %d' % count)
 
             scan = ros_view.last_sensor_reading
 
             correspondence = particle.match_features_to_scan(scan)
-            if (count % 1) == 0:
+            if (count % 10) == 0:
                 rospy.loginfo('<<< end correspondence %d' % count)
             
             for pair in correspondence:
@@ -127,7 +124,7 @@ class FastSLAM(object):
                     particle.weight *= weighty
                     particle.state.header.frame_id = 'odom'
                     self.particle_track_pub.publish(particle.state)
-            if (count % 1) == 0:
+            if (count % 10) == 0:
                 rospy.loginfo('<<< end correspondence loop %d' % count)
 
         rospy.loginfo('core_v2: cam_cb -> post low_variance_resample')
