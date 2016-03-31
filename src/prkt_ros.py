@@ -28,6 +28,8 @@ class CamSlam360(object):
 
         self.core = None
 
+        self.last_sensor_reading = None
+
         preset_covariance = Matrix([[.01,0,0,0,0],
                                     [0,.01,0,0,0],
                                     [0,0,.01,0,0],
@@ -59,10 +61,19 @@ class CamSlam360(object):
         self.odom_pub = rospy.Publisher('/slam_estimate', Odometry, queue_size=1)
     
     def run(self):
+        joke_rate = Rate(10)
         if self.core is not None:
             rospy.loginfo('Running!')
             self.print_summary()
-            rospy.spin()
+            while not rospy.is_shutdown():
+                self.loop_over_particles()
+                joke_rate.sleep()
+            rospy.loginfo('exited main loop. Done!')
+
+    def loop_over_particles(self):
+        rospy.loginfo('main loop passing of sensor data to SLAM')
+        self.core.cam_cb(self.last_sensor_reading)
+        self.odom_pub.publish(easy_odom())
 
     def initialize_particle_filter(self, preset_features):
         '''
@@ -82,10 +93,11 @@ class CamSlam360(object):
 
     def measurement_update(self, msg):
         '''
-        Pass along a VizScan message
+        Pass along a VizScan message to the main running loop
         '''
-        self.core.cam_cb(msg)
-        # self.print_summary()
+        # self.core.cam_cb(msg)
+        rospy.loginfo('new sensor data...')
+        self.last_sensor_reading = msg
         odom = self.easy_odom()
         self.odom_pub.publish(odom)
 
