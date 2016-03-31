@@ -30,11 +30,11 @@ class CamSlam360(object):
 
         self.last_sensor_reading = None
 
-        preset_covariance = Matrix([[.01,0,0,0,0],
-                                    [0,.01,0,0,0],
-                                    [0,0,.01,0,0],
-                                    [0,0,0,.01,0],
-                                    [0,0,0,0,.01]])
+        preset_covariance = Matrix([[0.25,0,0,0,0],
+                                    [0,0.25,0,0,0],
+                                    [0,0,0.25,0,0],
+                                    [0,0,0,0.25,0],
+                                    [0,0,0,0,0.25]])
 
         # purple, origin
         feature1 = Feature(mean=Matrix([0,0,161,77,137]), covar=preset_covariance)
